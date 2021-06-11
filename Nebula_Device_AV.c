@@ -579,14 +579,14 @@ static void *ThreadVideoFrameData(void *arg)
                     memset(&frame_info, 0, sizeof(frame_info));
                     frame_info.codec_id = MEDIA_CODEC_VIDEO_H264;
                     frame_info.flags = IPC_FRAME_FLAG_IFRAME;
-                }
-                else{
-                    /* P-Frame Process */
-                    // *** set Video Frame info here ***
-                    memset(&frame_info, 0, sizeof(frame_info));
-                    frame_info.codec_id = MEDIA_CODEC_VIDEO_H264;
-                    frame_info.flags = IPC_FRAME_FLAG_PBFRAME;
-                }
+
+//                else{
+//                    /* P-Frame Process */
+//                    // *** set Video Frame info here ***
+//                    memset(&frame_info, 0, sizeof(frame_info));
+//                    frame_info.codec_id = MEDIA_CODEC_VIDEO_H264;
+//                    frame_info.flags = IPC_FRAME_FLAG_PBFRAME;
+//                }
                 // fwrite(buf_ret, 1, fsize, stdout);
                 /* TUTK Program starts here */
                 frame_info.timestamp = GetTimeStampMs();
@@ -682,7 +682,7 @@ static void *ThreadVideoFrameData(void *arg)
                 /* Flush Param */
                 memset(buf_ret, 0, fsize);
                 size_ret = 0;
-            }
+            }}
         }
 
 
