@@ -617,7 +617,7 @@ static void *ThreadVideoFrameData(void *arg)
                     // Send Video Frame to av-idx and know how many time it takes
                     frame_info.onlineNum = gOnlineNum;
                     gettimeofday(&tv_start, NULL);
-                    ret = avSendFrameData(av_index, buf, size, &frame_info, sizeof(frame_info));
+                    ret = avSendFrameData(av_index, buf_ret, fsize, &frame_info, sizeof(frame_info));
                     gettimeofday(&tv_end, NULL);
 
                     take_sec = tv_end.tv_sec-tv_start.tv_sec, take_us = tv_end.tv_usec-tv_start.tv_usec;
