@@ -7,8 +7,13 @@
 #include <ctype.h>
 #include <sys/time.h>
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+
+#include <fcntl.h>
 
 #include "Nebula_Device_AV.h"
 #include "sample_constants.h"
@@ -569,11 +574,11 @@ static void *ThreadVideoFrameData(void *arg)
             if (size_ret>0){
                 /* Input for TUTK... */
                 if (frame_ret == 0){
-                /* I-Frame Process */
-                // *** set Video Frame info here ***
-                memset(&frame_info, 0, sizeof(frame_info));
-                frame_info.codec_id = MEDIA_CODEC_VIDEO_H264;
-                frame_info.flags = IPC_FRAME_FLAG_IFRAME;
+                    /* I-Frame Process */
+                    // *** set Video Frame info here ***
+                    memset(&frame_info, 0, sizeof(frame_info));
+                    frame_info.codec_id = MEDIA_CODEC_VIDEO_H264;
+                    frame_info.flags = IPC_FRAME_FLAG_IFRAME;
                 }
                 else{
                     /* P-Frame Process */
