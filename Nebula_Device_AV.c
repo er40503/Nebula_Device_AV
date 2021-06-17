@@ -548,6 +548,7 @@ static void *ThreadVideoFrameData(void *arg) {
                 if (key == 1) {
                     if (nalUnit > 0) {
 //                    write(nalUnit, tail, head - tail);
+                        int strmsize = read(nalUnit, tail, head - tail);
                         // TUTK Program starts here...
                         gettimeofday(&tteststart, NULL); //TTest
                         frame_info.timestamp = GetTimeStampMs();
@@ -578,7 +579,7 @@ static void *ThreadVideoFrameData(void *arg) {
                             // Send Video Frame to av-idx and know how many time it takes
                             frame_info.onlineNum = gOnlineNum;
                             gettimeofday(&tv_start, NULL);
-                            ret = avSendFrameData(av_index, buf_ret, rsize, &frame_info, sizeof(frame_info));
+                            ret = avSendFrameData(av_index, tail, strmsize, &frame_info, sizeof(frame_info));
                             gettimeofday(&tv_end, NULL);
 
                             take_sec = tv_end.tv_sec - tv_start.tv_sec, take_us = tv_end.tv_usec - tv_start.tv_usec;
@@ -589,8 +590,7 @@ static void *ThreadVideoFrameData(void *arg) {
                             send_frame_us += take_us;
                             // printf("send_frame_us = %ld us\n", send_frame_us);
                             total_count++;
-                            if (ret ==
-                                AV_ER_EXCEED_MAX_SIZE) { // means data not write to queue, send too slow, I want to skip it
+                            if (ret == AV_ER_EXCEED_MAX_SIZE) { // means data not write to queue, send too slow, I want to skip it
                                 printf("%s AV_ER_EXCEED_MAX_SIZE SID[%d] avIndex[%d]\n", __func__, i, av_index);
                                 usleep(5000);
                                 continue;
@@ -654,7 +654,8 @@ static void *ThreadVideoFrameData(void *arg) {
 
 
             if (data == tail) {
-                write(nalUnit, tail, head - tail);
+//                write(nalUnit, tail, head - tail);
+                read(nalUnit, tail, head - tail);
                 memcpy(tmp, head, DATA_TAIL - head + 1);
                 memcpy(data, tmp, DATA_TAIL - head + 1);
                 head = data + (DATA_TAIL - head + 1);
@@ -664,11 +665,12 @@ static void *ThreadVideoFrameData(void *arg) {
                 head = data + (DATA_TAIL - tail + 1);
             }
         }
+//        write(nalUnit, data, (DATA_TAIL - data));
+        read(nalUnit, data, (DATA_TAIL - data));
+        close(nalUnit);
+        close(f);
     }
-    printf("[%s] exit High/Low [%f/%f] AVG[%f] totalCnt[%d]\n", __func__, hF, lF, (float) total_fps / round,
-           total_count);
-    close(nalUnit);
-    close(f);
+    printf("[%s] exit High/Low [%f/%f] AVG[%f] totalCnt[%d]\n", __func__, hF, lF, (float) total_fps / round, total_count);
     pthread_exit(0);
 }
 
