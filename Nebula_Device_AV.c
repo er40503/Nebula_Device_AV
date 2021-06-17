@@ -22,7 +22,7 @@
 //########################################################
 //# Nebula configurations data
 //########################################################
-static char gUdid[MAX_UDID_LENGTH + 1] ={0};
+static char gUdid[MAX_UDID_LENGTH + 1] = {0};
 static char gPinCode[MAX_PIN_CODE_LENGTH + 1] = {0};
 static char gSecretId[MAX_NEBULA_SECRETID_LENGTH + 1] = {0};
 
@@ -65,15 +65,13 @@ static char gUserIdentitiesFilePath[] = "./identities_list.txt";
 //########################################################
 //# Get Timestamp
 //########################################################
-unsigned int GetTimeStampMs()
-{
+unsigned int GetTimeStampMs() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return (tv.tv_sec * 1000 + tv.tv_usec / 1000);
 }
 
-unsigned int GetTimeStampSec()
-{
+unsigned int GetTimeStampSec() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return (tv.tv_sec);
@@ -82,161 +80,158 @@ unsigned int GetTimeStampSec()
 //########################################################
 //# Print error message
 //########################################################
-static void PrintErrHandling(int error)
-{
-    switch (error)
-    {
-    case IOTC_ER_MASTER_NOT_RESPONSE:
-        //-60 IOTC_ER_MASTER_NOT_RESPONSE
-        printf("[Error code : %d]\n", IOTC_ER_MASTER_NOT_RESPONSE);
-        printf("Master server doesn't respond.\n");
-        printf("Please check the network wheather it could connect to the Internet.\n");
-        break;
-    case IOTC_ER_SERVER_NOT_RESPONSE:
-        //-1 IOTC_ER_SERVER_NOT_RESPONSE
-        printf("[Error code : %d]\n", IOTC_ER_SERVER_NOT_RESPONSE);
-        printf("P2P Server doesn't respond.\n");
-        printf("Please check the network wheather it could connect to the Internet.\n");
-        break;
-    case IOTC_ER_FAIL_RESOLVE_HOSTNAME:
-        //-2 IOTC_ER_FAIL_RESOLVE_HOSTNAME
-        printf("[Error code : %d]\n", IOTC_ER_FAIL_RESOLVE_HOSTNAME);
-        printf("Can't resolve hostname.\n");
-        break;
-    case IOTC_ER_ALREADY_INITIALIZED:
-        //-3 IOTC_ER_ALREADY_INITIALIZED
-        printf("[Error code : %d]\n", IOTC_ER_ALREADY_INITIALIZED);
-        printf("Already initialized.\n");
-        break;
-    case IOTC_ER_FAIL_CREATE_MUTEX:
-        //-4 IOTC_ER_FAIL_CREATE_MUTEX
-        printf("[Error code : %d]\n", IOTC_ER_FAIL_CREATE_MUTEX);
-        printf("Can't create mutex.\n");
-        break;
-    case IOTC_ER_FAIL_CREATE_THREAD:
-        //-5 IOTC_ER_FAIL_CREATE_THREAD
-        printf("[Error code : %d]\n", IOTC_ER_FAIL_CREATE_THREAD);
-        printf("Can't create thread.\n");
-        break;
-    case IOTC_ER_UNLICENSE:
-        //-10 IOTC_ER_UNLICENSE
-        printf("[Error code : %d]\n", IOTC_ER_UNLICENSE);
-        printf("This UID is unlicense.\n");
-        printf("Check your UID.\n");
-        break;
-    case IOTC_ER_NOT_INITIALIZED:
-        //-12 IOTC_ER_NOT_INITIALIZED
-        printf("[Error code : %d]\n", IOTC_ER_NOT_INITIALIZED);
-        printf("Please initialize the IOTCAPI first.\n");
-        break;
-    case IOTC_ER_TIMEOUT:
-        //-13 IOTC_ER_TIMEOUT
-        break;
-    case IOTC_ER_INVALID_SID:
-        //-14 IOTC_ER_INVALID_SID
-        printf("[Error code : %d]\n", IOTC_ER_INVALID_SID);
-        printf("This SID is invalid.\n");
-        printf("Please check it again.\n");
-        break;
-    case IOTC_ER_EXCEED_MAX_SESSION:
-        //-18 IOTC_ER_EXCEED_MAX_SESSION
-        printf("[Error code : %d]\n", IOTC_ER_EXCEED_MAX_SESSION);
-        printf("[Warning]\n");
-        printf("The amount of session reach to the maximum.\n");
-        printf("It cannot be connected unless the session is released.\n");
-        break;
-    case IOTC_ER_CAN_NOT_FIND_DEVICE:
-        //-19 IOTC_ER_CAN_NOT_FIND_DEVICE
-        printf("[Error code : %d]\n", IOTC_ER_CAN_NOT_FIND_DEVICE);
-        printf("Device didn't register on server, so we can't find device.\n");
-        printf("Please check the device again.\n");
-        printf("Retry...\n");
-        break;
-    case IOTC_ER_SESSION_CLOSE_BY_REMOTE:
-        //-22 IOTC_ER_SESSION_CLOSE_BY_REMOTE
-        printf("[Error code : %d]\n", IOTC_ER_SESSION_CLOSE_BY_REMOTE);
-        printf("Session is closed by remote so we can't access.\n");
-        printf("Please close it or establish session again.\n");
-        break;
-    case IOTC_ER_REMOTE_TIMEOUT_DISCONNECT:
-        //-23 IOTC_ER_REMOTE_TIMEOUT_DISCONNECT
-        printf("[Error code : %d]\n", IOTC_ER_REMOTE_TIMEOUT_DISCONNECT);
-        printf("We can't receive an acknowledgement character within a TIMEOUT.\n");
-        printf("It might that the session is disconnected by remote.\n");
-        printf("Please check the network wheather it is busy or not.\n");
-        printf("And check the device and user equipment work well.\n");
-        break;
-    case IOTC_ER_DEVICE_NOT_LISTENING:
-        //-24 IOTC_ER_DEVICE_NOT_LISTENING
-        printf("[Error code : %d]\n", IOTC_ER_DEVICE_NOT_LISTENING);
-        printf("Device doesn't listen or the sessions of device reach to maximum.\n");
-        printf("Please release the session and check the device wheather it listen or not.\n");
-        break;
-    case IOTC_ER_CH_NOT_ON:
-        //-26 IOTC_ER_CH_NOT_ON
-        printf("[Error code : %d]\n", IOTC_ER_CH_NOT_ON);
-        printf("Channel isn't on.\n");
-        printf("Please open it by IOTC_Session_Channel_ON() or IOTC_Session_Get_Free_Channel()\n");
-        printf("Retry...\n");
-        break;
-    case IOTC_ER_SESSION_NO_FREE_CHANNEL:
-        //-31 IOTC_ER_SESSION_NO_FREE_CHANNEL
-        printf("[Error code : %d]\n", IOTC_ER_SESSION_NO_FREE_CHANNEL);
-        printf("All channels are occupied.\n");
-        printf("Please release some channel.\n");
-        break;
-    case IOTC_ER_TCP_TRAVEL_FAILED:
-        //-32 IOTC_ER_TCP_TRAVEL_FAILED
-        printf("[Error code : %d]\n", IOTC_ER_TCP_TRAVEL_FAILED);
-        printf("Device can't connect to Master.\n");
-        printf("Don't let device use proxy.\n");
-        printf("Close firewall of device.\n");
-        printf("Or open device's TCP port 80, 443, 8080, 8000, 21047.\n");
-        break;
-    case IOTC_ER_TCP_CONNECT_TO_SERVER_FAILED:
-        //-33 IOTC_ER_TCP_CONNECT_TO_SERVER_FAILED
-        printf("[Error code : %d]\n", IOTC_ER_TCP_CONNECT_TO_SERVER_FAILED);
-        printf("Device can't connect to server by TCP.\n");
-        printf("Don't let server use proxy.\n");
-        printf("Close firewall of server.\n");
-        printf("Or open server's TCP port 80, 443, 8080, 8000, 21047.\n");
-        printf("Retry...\n");
-        break;
-    case IOTC_ER_NO_PERMISSION:
-        //-40 IOTC_ER_NO_PERMISSION
-        printf("[Error code : %d]\n", IOTC_ER_NO_PERMISSION);
-        printf("This UID's license doesn't support TCP.\n");
-        break;
-    case IOTC_ER_NETWORK_UNREACHABLE:
-        //-41 IOTC_ER_NETWORK_UNREACHABLE
-        printf("[Error code : %d]\n", IOTC_ER_NETWORK_UNREACHABLE);
-        printf("Network is unreachable.\n");
-        printf("Please check your network.\n");
-        printf("Retry...\n");
-        break;
-    case IOTC_ER_FAIL_SETUP_RELAY:
-        //-42 IOTC_ER_FAIL_SETUP_RELAY
-        printf("[Error code : %d]\n", IOTC_ER_FAIL_SETUP_RELAY);
-        printf("Client can't connect to a device via Lan, P2P, and Relay mode\n");
-        break;
-    case IOTC_ER_NOT_SUPPORT_RELAY:
-        //-43 IOTC_ER_NOT_SUPPORT_RELAY
-        printf("[Error code : %d]\n", IOTC_ER_NOT_SUPPORT_RELAY);
-        printf("Server doesn't support UDP relay mode.\n");
-        printf("So client can't use UDP relay to connect to a device.\n");
-        break;
+static void PrintErrHandling(int error) {
+    switch (error) {
+        case IOTC_ER_MASTER_NOT_RESPONSE:
+            //-60 IOTC_ER_MASTER_NOT_RESPONSE
+            printf("[Error code : %d]\n", IOTC_ER_MASTER_NOT_RESPONSE);
+            printf("Master server doesn't respond.\n");
+            printf("Please check the network wheather it could connect to the Internet.\n");
+            break;
+        case IOTC_ER_SERVER_NOT_RESPONSE:
+            //-1 IOTC_ER_SERVER_NOT_RESPONSE
+            printf("[Error code : %d]\n", IOTC_ER_SERVER_NOT_RESPONSE);
+            printf("P2P Server doesn't respond.\n");
+            printf("Please check the network wheather it could connect to the Internet.\n");
+            break;
+        case IOTC_ER_FAIL_RESOLVE_HOSTNAME:
+            //-2 IOTC_ER_FAIL_RESOLVE_HOSTNAME
+            printf("[Error code : %d]\n", IOTC_ER_FAIL_RESOLVE_HOSTNAME);
+            printf("Can't resolve hostname.\n");
+            break;
+        case IOTC_ER_ALREADY_INITIALIZED:
+            //-3 IOTC_ER_ALREADY_INITIALIZED
+            printf("[Error code : %d]\n", IOTC_ER_ALREADY_INITIALIZED);
+            printf("Already initialized.\n");
+            break;
+        case IOTC_ER_FAIL_CREATE_MUTEX:
+            //-4 IOTC_ER_FAIL_CREATE_MUTEX
+            printf("[Error code : %d]\n", IOTC_ER_FAIL_CREATE_MUTEX);
+            printf("Can't create mutex.\n");
+            break;
+        case IOTC_ER_FAIL_CREATE_THREAD:
+            //-5 IOTC_ER_FAIL_CREATE_THREAD
+            printf("[Error code : %d]\n", IOTC_ER_FAIL_CREATE_THREAD);
+            printf("Can't create thread.\n");
+            break;
+        case IOTC_ER_UNLICENSE:
+            //-10 IOTC_ER_UNLICENSE
+            printf("[Error code : %d]\n", IOTC_ER_UNLICENSE);
+            printf("This UID is unlicense.\n");
+            printf("Check your UID.\n");
+            break;
+        case IOTC_ER_NOT_INITIALIZED:
+            //-12 IOTC_ER_NOT_INITIALIZED
+            printf("[Error code : %d]\n", IOTC_ER_NOT_INITIALIZED);
+            printf("Please initialize the IOTCAPI first.\n");
+            break;
+        case IOTC_ER_TIMEOUT:
+            //-13 IOTC_ER_TIMEOUT
+            break;
+        case IOTC_ER_INVALID_SID:
+            //-14 IOTC_ER_INVALID_SID
+            printf("[Error code : %d]\n", IOTC_ER_INVALID_SID);
+            printf("This SID is invalid.\n");
+            printf("Please check it again.\n");
+            break;
+        case IOTC_ER_EXCEED_MAX_SESSION:
+            //-18 IOTC_ER_EXCEED_MAX_SESSION
+            printf("[Error code : %d]\n", IOTC_ER_EXCEED_MAX_SESSION);
+            printf("[Warning]\n");
+            printf("The amount of session reach to the maximum.\n");
+            printf("It cannot be connected unless the session is released.\n");
+            break;
+        case IOTC_ER_CAN_NOT_FIND_DEVICE:
+            //-19 IOTC_ER_CAN_NOT_FIND_DEVICE
+            printf("[Error code : %d]\n", IOTC_ER_CAN_NOT_FIND_DEVICE);
+            printf("Device didn't register on server, so we can't find device.\n");
+            printf("Please check the device again.\n");
+            printf("Retry...\n");
+            break;
+        case IOTC_ER_SESSION_CLOSE_BY_REMOTE:
+            //-22 IOTC_ER_SESSION_CLOSE_BY_REMOTE
+            printf("[Error code : %d]\n", IOTC_ER_SESSION_CLOSE_BY_REMOTE);
+            printf("Session is closed by remote so we can't access.\n");
+            printf("Please close it or establish session again.\n");
+            break;
+        case IOTC_ER_REMOTE_TIMEOUT_DISCONNECT:
+            //-23 IOTC_ER_REMOTE_TIMEOUT_DISCONNECT
+            printf("[Error code : %d]\n", IOTC_ER_REMOTE_TIMEOUT_DISCONNECT);
+            printf("We can't receive an acknowledgement character within a TIMEOUT.\n");
+            printf("It might that the session is disconnected by remote.\n");
+            printf("Please check the network wheather it is busy or not.\n");
+            printf("And check the device and user equipment work well.\n");
+            break;
+        case IOTC_ER_DEVICE_NOT_LISTENING:
+            //-24 IOTC_ER_DEVICE_NOT_LISTENING
+            printf("[Error code : %d]\n", IOTC_ER_DEVICE_NOT_LISTENING);
+            printf("Device doesn't listen or the sessions of device reach to maximum.\n");
+            printf("Please release the session and check the device wheather it listen or not.\n");
+            break;
+        case IOTC_ER_CH_NOT_ON:
+            //-26 IOTC_ER_CH_NOT_ON
+            printf("[Error code : %d]\n", IOTC_ER_CH_NOT_ON);
+            printf("Channel isn't on.\n");
+            printf("Please open it by IOTC_Session_Channel_ON() or IOTC_Session_Get_Free_Channel()\n");
+            printf("Retry...\n");
+            break;
+        case IOTC_ER_SESSION_NO_FREE_CHANNEL:
+            //-31 IOTC_ER_SESSION_NO_FREE_CHANNEL
+            printf("[Error code : %d]\n", IOTC_ER_SESSION_NO_FREE_CHANNEL);
+            printf("All channels are occupied.\n");
+            printf("Please release some channel.\n");
+            break;
+        case IOTC_ER_TCP_TRAVEL_FAILED:
+            //-32 IOTC_ER_TCP_TRAVEL_FAILED
+            printf("[Error code : %d]\n", IOTC_ER_TCP_TRAVEL_FAILED);
+            printf("Device can't connect to Master.\n");
+            printf("Don't let device use proxy.\n");
+            printf("Close firewall of device.\n");
+            printf("Or open device's TCP port 80, 443, 8080, 8000, 21047.\n");
+            break;
+        case IOTC_ER_TCP_CONNECT_TO_SERVER_FAILED:
+            //-33 IOTC_ER_TCP_CONNECT_TO_SERVER_FAILED
+            printf("[Error code : %d]\n", IOTC_ER_TCP_CONNECT_TO_SERVER_FAILED);
+            printf("Device can't connect to server by TCP.\n");
+            printf("Don't let server use proxy.\n");
+            printf("Close firewall of server.\n");
+            printf("Or open server's TCP port 80, 443, 8080, 8000, 21047.\n");
+            printf("Retry...\n");
+            break;
+        case IOTC_ER_NO_PERMISSION:
+            //-40 IOTC_ER_NO_PERMISSION
+            printf("[Error code : %d]\n", IOTC_ER_NO_PERMISSION);
+            printf("This UID's license doesn't support TCP.\n");
+            break;
+        case IOTC_ER_NETWORK_UNREACHABLE:
+            //-41 IOTC_ER_NETWORK_UNREACHABLE
+            printf("[Error code : %d]\n", IOTC_ER_NETWORK_UNREACHABLE);
+            printf("Network is unreachable.\n");
+            printf("Please check your network.\n");
+            printf("Retry...\n");
+            break;
+        case IOTC_ER_FAIL_SETUP_RELAY:
+            //-42 IOTC_ER_FAIL_SETUP_RELAY
+            printf("[Error code : %d]\n", IOTC_ER_FAIL_SETUP_RELAY);
+            printf("Client can't connect to a device via Lan, P2P, and Relay mode\n");
+            break;
+        case IOTC_ER_NOT_SUPPORT_RELAY:
+            //-43 IOTC_ER_NOT_SUPPORT_RELAY
+            printf("[Error code : %d]\n", IOTC_ER_NOT_SUPPORT_RELAY);
+            printf("Server doesn't support UDP relay mode.\n");
+            printf("So client can't use UDP relay to connect to a device.\n");
+            break;
 
-    default:
-        printf("[Unknow error code : %d]\n", error);
-        break;
+        default:
+            printf("[Unknow error code : %d]\n", error);
+            break;
     }
 }
 
 //########################################################
 //# Print IOTC & AV version
 //########################################################
-static void PrintVersion()
-{
+static void PrintVersion() {
     const char *iotc_ver = IOTC_Get_Version_String();
     const char *av_ver = avGetAVApiVersionString();
     printf("IOTCAPI version[%s] AVAPI version[%s]\n", iotc_ver, av_ver);
@@ -246,46 +241,39 @@ static void PrintVersion()
 //########################################################
 //# Enable / Disable live stream to AV client
 //########################################################
-static void RegEditClient(int sid, int av_index)
-{
+static void RegEditClient(int sid, int av_index) {
     AV_Client *p = &gClientInfo[sid];
     p->av_index = av_index;
 }
 
-static void RegEditClientToVideo(int sid, int av_index)
-{
+static void RegEditClientToVideo(int sid, int av_index) {
     AV_Client *p = &gClientInfo[sid];
     p->av_index = av_index;
     p->enable_video = 1;
 }
 
-static void UnRegEditClientFromVideo(int sid)
-{
+static void UnRegEditClientFromVideo(int sid) {
     AV_Client *p = &gClientInfo[sid];
     p->enable_video = 0;
 }
 
-static void RegEditClientToAudio(int sid, int av_index)
-{
+static void RegEditClientToAudio(int sid, int av_index) {
     AV_Client *p = &gClientInfo[sid];
     p->enable_audio = 1;
 }
 
-static void UnRegEditClientFromAudio(int sid)
-{
+static void UnRegEditClientFromAudio(int sid) {
     AV_Client *p = &gClientInfo[sid];
     p->enable_audio = 0;
 }
 
-static void RegEditClientStreamMode(int sid, int stream_mode)
-{
+static void RegEditClientStreamMode(int sid, int stream_mode) {
     AV_Client *p = &gClientInfo[sid];
     p->two_way_stream = stream_mode;
 }
 
-static int GetSidFromAvIndex(int av_index)
-{
-    for (int i = 0 ; i < MAX_CLIENT_NUMBER; i++) {
+static int GetSidFromAvIndex(int av_index) {
+    for (int i = 0; i < MAX_CLIENT_NUMBER; i++) {
         if (gClientInfo[i].av_index == av_index) {
             return i;
         }
@@ -297,36 +285,34 @@ static int GetSidFromAvIndex(int av_index)
 //########################################################
 //# Callback functions for avServStartEx()
 //########################################################
-static int ExTokenDeleteCallBackFn(int av_index, const char *identity)
-{
+static int ExTokenDeleteCallBackFn(int av_index, const char *identity) {
     //not implement in this sample
     return 0;
 }
 
-static int ExTokenRequestCallBackFn(int av_index, const char *identity, const char *identity_description, char *token, unsigned int token_length)
-{
+static int ExTokenRequestCallBackFn(int av_index, const char *identity, const char *identity_description, char *token,
+                                    unsigned int token_length) {
     //not implement in this sample
     return 0;
 }
 
-static void ExGetIdentityArrayCallBackFn(int av_index, avServSendIdentityArray send_identity_array)
-{
+static void ExGetIdentityArrayCallBackFn(int av_index, avServSendIdentityArray send_identity_array) {
     //not implement in this sample
 }
 
-static int ExChangePasswordCallBackFn(int av_index, const char *account, const char *old_password, const char *new_password, const char *new_iotc_authkey)
-{
+static int
+ExChangePasswordCallBackFn(int av_index, const char *account, const char *old_password, const char *new_password,
+                           const char *new_iotc_authkey) {
     //not implement in this sample
     return 0;
 }
 
-static void ExAbilityRequestFn(int av_index, avServSendAbility send_ability)
-{
+static void ExAbilityRequestFn(int av_index, avServSendAbility send_ability) {
     //not implement in this sample
 }
 
-static int ExJsonRequestFn(int av_index, const char *func, const NebulaJsonObject *json_args, NebulaJsonObject **response)
-{
+static int
+ExJsonRequestFn(int av_index, const char *func, const NebulaJsonObject *json_args, NebulaJsonObject **response) {
     int ret = 0, value = 0, status_code = 0;
     const NebulaJsonObject *json_value = NULL;
     printf("ExJsonRequestFn %s\n", func);
@@ -336,7 +322,7 @@ static int ExJsonRequestFn(int av_index, const char *func, const NebulaJsonObjec
         return 400;
     }
 
-    if(strcmp(func, "startVideo")==0) {
+    if (strcmp(func, "startVideo") == 0) {
         ret = Nebula_Json_Obj_Get_Sub_Obj(json_args, "value", &json_value);
         if (ret != NEBULA_ER_NoERROR || json_value == NULL) {
             printf("Unable to get value object\n");
@@ -346,7 +332,7 @@ static int ExJsonRequestFn(int av_index, const char *func, const NebulaJsonObjec
         ret = Nebula_Json_Obj_Get_Bool(json_value, &value);
         if (ret == NEBULA_ER_NoERROR) {
             printf("func is [%s] value is [%d]\n", func, value);
-            if(value == 1){
+            if (value == 1) {
                 RegEditClientToVideo(sid, av_index);
             } else {
                 UnRegEditClientFromVideo(sid);
@@ -356,7 +342,7 @@ static int ExJsonRequestFn(int av_index, const char *func, const NebulaJsonObjec
             printf("Unable to get correct value\n");
             status_code = 400;
         }
-    } else if(strcmp(func, "startAudio")==0) {
+    } else if (strcmp(func, "startAudio") == 0) {
         ret = Nebula_Json_Obj_Get_Sub_Obj(json_args, "value", &json_value);
         if (ret != NEBULA_ER_NoERROR || json_value == NULL) {
             printf("Unable to get value object\n");
@@ -366,7 +352,7 @@ static int ExJsonRequestFn(int av_index, const char *func, const NebulaJsonObjec
         ret = Nebula_Json_Obj_Get_Bool(json_value, &value);
         if (ret == NEBULA_ER_NoERROR) {
             printf("func is [%s] value is [%d]\n", func, value);
-            if(value == 1){
+            if (value == 1) {
                 RegEditClientToAudio(sid, av_index);
             } else {
                 UnRegEditClientFromAudio(sid);
@@ -376,7 +362,7 @@ static int ExJsonRequestFn(int av_index, const char *func, const NebulaJsonObjec
             printf("Unable to get correct value\n");
             status_code = 400;
         }
-    } else if(strcmp(func, "playbackControl")==0) {
+    } else if (strcmp(func, "playbackControl") == 0) {
         const NebulaJsonObject *json_ctrl = NULL;
         const NebulaJsonObject *json_filename = NULL;
         Nebula_Json_Obj_Get_Sub_Obj(json_args, "ctrl", &json_ctrl);
@@ -394,25 +380,25 @@ static int ExJsonRequestFn(int av_index, const char *func, const NebulaJsonObjec
         printf("func is [%s] value[%d] file[%s]\n", func, ctrl_value, filename);
 
         ret = HandlePlaybackControl(sid, ctrl_value, filename);
-        if(ret != NEBULA_ER_NoERROR){
+        if (ret != NEBULA_ER_NoERROR) {
             status_code = 400;
         } else {
             status_code = 200;
         }
-    } else if(strcmp(func, "getCameraCapability")==0){
+    } else if (strcmp(func, "getCameraCapability") == 0) {
         const char json[] = "{\"channels\":[{\"protocols\":[\"iotc-av\"],\"channelId\":0,\"lens\":{\"type\":\"normal\"},\"video\":{\"codecs\":[\"h264\"],\"averageBitrates\":[100000],\"presets\":[{\"name\":\"720p\",\"codec\":\"h264\",\"averageBitrate\":100000,\"resolution\":\"1280×720\"}]},\"audio\":{\"presets\":[{\"name\":\"pcm_8000_16_1\",\"codec\":\"pcm\",\"sampleRate\":8000,\"bitsPerSample\":16,\"channelCount\":1}]},\"speaker\":{\"presets\":[{\"name\":\"speaker_1\",\"codec\":\"pcm\",\"sampleRate\":8000,\"bitsPerSample\":16,\"channelCount\":1}]}},{\"protocols\":[\"iotc-av\"],\"channelId\":1,\"lens\":{\"type\":\"normal\"},\"video\":{\"codecs\":[\"h264\"],\"averageBitrates\":[100000],\"presets\":[{\"name\":\"720p\",\"codec\":\"h264\",\"averageBitrate\":100000,\"resolution\":\"1280×720\"},{\"name\":\"1080p\",\"codec\":\"h264\",\"averageBitrate\":500000,\"resolution\":\"1920x1080\"}]}}]}";
         ret = Nebula_Json_Obj_Create_From_String(json, response);
         printf("create getCameraCapability response[%d]\n", ret);
-        if(ret != 0){
+        if (ret != 0) {
             status_code = 400;
         } else {
             status_code = 200;
         }
-    } else if(strcmp(func, "startSpeaker")==0) {
+    } else if (strcmp(func, "startSpeaker") == 0) {
         int enable_speaker = 0;
         Nebula_Json_Obj_Get_Sub_Obj_Bool(json_args, "value", &enable_speaker);
         ret = HandleSpeakerControl(sid, enable_speaker);
-        if(ret != 0){
+        if (ret != 0) {
             status_code = 400;
         } else {
             status_code = 200;
@@ -425,8 +411,8 @@ static int ExJsonRequestFn(int av_index, const char *func, const NebulaJsonObjec
     return status_code;
 }
 
-int StartAvServer(int sid, unsigned char chid, unsigned int timeout_sec, unsigned int resend_buf_size_kbyte, int *stream_mode)
-{
+int StartAvServer(int sid, unsigned char chid, unsigned int timeout_sec, unsigned int resend_buf_size_kbyte,
+                  int *stream_mode) {
     struct st_SInfoEx session_info;
 
     AVServStartInConfig av_start_in_config;
@@ -467,268 +453,239 @@ int StartAvServer(int sid, unsigned char chid, unsigned int timeout_sec, unsigne
 
         if (isdigit(session_info.RemoteIP[0]))
             printf("Client is from[IP:%s, Port:%d] Mode[%s] VPG[%d:%d:%d] VER[%X] NAT[%d] AES[%d]\n", \
-            session_info.RemoteIP, session_info.RemotePort, mode[(int)session_info.Mode], session_info.VID, session_info.PID, session_info.GID, session_info.IOTCVersion, session_info.LocalNatType, session_info.isSecure);
+            session_info.RemoteIP, session_info.RemotePort, mode[(int) session_info.Mode], session_info.VID,
+                   session_info.PID, session_info.GID, session_info.IOTCVersion, session_info.LocalNatType,
+                   session_info.isSecure);
     }
     printf("avServStartEx OK, SID[%d] avIndex[%d], resend[%d] two_way_streaming[%d] auth_type[%d]\n", \
-        sid, av_index, av_start_out_config.resend, av_start_out_config.two_way_streaming, av_start_out_config.auth_type);
-    if(stream_mode){
+        sid, av_index, av_start_out_config.resend, av_start_out_config.two_way_streaming,
+           av_start_out_config.auth_type);
+    if (stream_mode) {
         *stream_mode = av_start_out_config.two_way_streaming;
     }
     avServSetResendSize(av_index, resend_buf_size_kbyte);
 
-    return av_index; 
+    return av_index;
 }
 
 
 //########################################################
 //#Thread - Send live streaming
 //########################################################
-static void *ThreadVideoFrameData(void *arg)
-{
+static void *ThreadVideoFrameData(void *arg) {
     unsigned int total_count = 0;
-    float hF = 0.0, lF= 0.0, total_fps = 0;
+    float hF = 0.0, lF = 0.0, total_fps = 0;
     long take_sec = 0, take_us = 0, send_frame_us = 0;
-    int fps_count = 0, round = 0, frame_rate = FPS, sleep_us = 1000000/frame_rate;
+    int fps_count = 0, round = 0, frame_rate = FPS, sleep_us = 1000000 / frame_rate;
     int i = 0, av_index = 0, enable_video = 0, send_frame_out = 0, size = 0, ret = 0, lock_ret = 0;
 
     char buf[VIDEO_BUF_SIZE];
     struct timeval tv, tv2;
     struct timeval tv_start, tv_end;
-    FILE *fp = NULL;
+
+    // FILE *fp = NULL;
     FRAMEINFO_t frame_info;
 
     //Adding
-    unsigned char iFrmaePrefix[] = {0x00, 0x00, 0x00, 0x01, 0x67};
-    unsigned char pFrmaePrefix[] = {0x00, 0x00, 0x00, 0x01, 0x41};
-    unsigned char *f;
-    int fsize;
-    struct stat s;
-    int fd;
-    int starter264nal = sizeof(iFrmaePrefix) / sizeof(unsigned char);
-    unsigned char *head;    
-    unsigned char *tmp;
-    int record = -1;
-    int ipFrame = -1; /* 0:I-Frame|1:P-Frame */
-    
-    size_t size_ret = 0;
-    int frame_ret = -1;
+    int IPSTARTER264NAL = 5;
+    unsigned char IFrame[] = {0, 0, 0, 1, 0x67};
+    unsigned char PFrame[] = {0, 0, 0, 1, 0x41};
+    unsigned MAX_BUFFER_SIZE = 256;
+    unsigned char data[MAX_BUFFER_SIZE];  // 256 Bytes
+    unsigned char tmp[MAX_BUFFER_SIZE];
+    unsigned char *head;
+    unsigned char *tail;
+    unsigned char *DATA_TAIL;
+    memset(data, 0, MAX_BUFFER_SIZE); //Init Matrix
 
-    fd = open (gLiveIframePath, O_RDONLY);
-    if(fd == -1){
+    long int nalIdx = 0;
+    int nalUnit = -1;
+    unsigned long diff;
+    int key = 0;
+    DATA_TAIL = data + MAX_BUFFER_SIZE - 1;
+    head = data;
+
+    int fd = open(gLiveIframePath, O_RDONLY);
+    if (fd == -1) {
         printf("%s: Video File \'%s\' open error!!\n", __func__, gLiveIframePath);
         printf("[Vidio] is DISABLED!!\n");
         printf("%s: exit\n", __func__);
         pthread_exit(0);
     }
-    
-    /* Get the size of the file. */
-    int status = fstat (fd, & s);
-    if(status == -1){ /* Get file size */
-        printf("fstat");
-        exit(0);
-    }
-    
-    fsize = s.st_size;
-    unsigned char buf_ret[fsize];
 
-    int wfd = -1;    
-
-    f = (unsigned char *) mmap (0, fsize, PROT_READ, MAP_PRIVATE, fd, 0);
     printf("%s start OK\n", __func__);
     printf("[Video] is ENABLED!!\n");
 
-    while(gProgressRun){
-        for (int i = 0; i < fsize; i++){
-            head = f+i;
-            if (memcmp(head, pFrmaePrefix, starter264nal) == 0){
-                if (record>-1){
-                        frame_ret = ipFrame;
-                size_ret = 1;
-                    memcpy(buf_ret, tmp, i-record);
-                }
-            record = i;
-            tmp = head;
-            ipFrame = 1;
+    while (gProgressRun) {
+        while (1) {
+            int len = read(f, head, DATA_TAIL - head + 1);
+            if (len <= 0) {
+                close(nalUnit);
+                // Adding
+                memset(data, 0, MAX_BUFFER_SIZE); //Init Matrix
+                DATA_TAIL = data + MAX_BUFFER_SIZE - 1;
+                head = data;
+//            break
             }
 
-            else if (memcmp(head, iFrmaePrefix, starter264nal) == 0){
-                if (record>-1){
-                        frame_ret = ipFrame;
-                        size_ret = 1;
-                        memcpy(buf_ret, tmp, i-record);
-                }
-            record = i;
-            tmp = head;
-            ipFrame = 0;
-            }
+            tail = data;
+            head -= IPSTARTER264NAL - 1;
+            while (head < DATA_TAIL - (IPSTARTER264NAL - 2)) {
+                if (memcmp(head, PFrame, IPSTARTER264NAL) == 0) {
+                    key = 1;
+                    memset(&frame_info, 0, sizeof(frame_info));
+                    frame_info.codec_id = MEDIA_CODEC_VIDEO_H264;
+                    frame_info.flags = IPC_FRAME_FLAG_PBFRAME;
 
-            /* Last loop, only run once and break */
-            else if (i == (fsize-1)){
-                frame_ret = ipFrame;
-                size_ret = 1;
-                memcpy(buf_ret, tmp, i-record+1);
-            }
-
-            else
-                ;
-            if (size_ret>0){
-                /* Input for TUTK... */
-                if (frame_ret == 0){
-                    /* I-Frame Process */
-                    // *** set Video Frame info here ***
+                } else if (memcmp(head, IFrame, IPSTARTER264NAL) == 0) {
+                    key = 1;
                     memset(&frame_info, 0, sizeof(frame_info));
                     frame_info.codec_id = MEDIA_CODEC_VIDEO_H264;
                     frame_info.flags = IPC_FRAME_FLAG_IFRAME;
 
-//                else{
-//                    /* P-Frame Process */
-//                    // *** set Video Frame info here ***
-//                    memset(&frame_info, 0, sizeof(frame_info));
-//                    frame_info.codec_id = MEDIA_CODEC_VIDEO_H264;
-//                    frame_info.flags = IPC_FRAME_FLAG_PBFRAME;
-//                }
-                // fwrite(buf_ret, 1, fsize, stdout);
-                /* TUTK Program starts here */
-                frame_info.timestamp = GetTimeStampMs();
-                send_frame_out = 0;
-                take_sec = 0, take_us = 0, send_frame_us = 0;
+                } else;
 
-                if(fps_count == 0)
-                    gettimeofday(&tv, NULL);
+                if (key == 1) {
+                    if (nalUnit > 0) {
+//                    write(nalUnit, tail, head - tail);
+                        // TUTK Program starts here...
+                        gettimeofday(&tteststart, NULL); //TTest
+                        frame_info.timestamp = GetTimeStampMs();
+                        send_frame_out = 0;
+                        take_sec = 0, take_us = 0, send_frame_us = 0;
 
-                for(i = 0 ; i < MAX_CLIENT_NUMBER; i++){
-                    //get reader lock
-                    lock_ret = pthread_rwlock_rdlock(&gClientInfo[i].lock);
-                    if(lock_ret)
-                        printf("Acquire SID %d rdlock error, ret = %d\n", i, lock_ret);
+                        if (fps_count == 0)
+                            gettimeofday(&tv, NULL);
 
-                    av_index = gClientInfo[i].av_index;
-                    enable_video = gClientInfo[i].enable_video;
+                        for (i = 0; i < MAX_CLIENT_NUMBER; i++) {
+                            //get reader lock
+                            lock_ret = pthread_rwlock_rdlock(&gClientInfo[i].lock);
+                            if (lock_ret)
+                                printf("Acquire SID %d rdlock error, ret = %d\n", i, lock_ret);
 
-                    //release reader lock
-                    lock_ret = pthread_rwlock_unlock(&gClientInfo[i].lock);
-                    if(lock_ret)
-                        printf("Acquire SID %d rdlock error, ret = %d\n", i, lock_ret);
+                            av_index = gClientInfo[i].av_index;
+                            enable_video = gClientInfo[i].enable_video;
 
-                    if(av_index < 0 || enable_video == 0){
-                        continue;
+                            //release reader lock
+                            lock_ret = pthread_rwlock_unlock(&gClientInfo[i].lock);
+                            if (lock_ret)
+                                printf("Acquire SID %d rdlock error, ret = %d\n", i, lock_ret);
+
+                            if (av_index < 0 || enable_video == 0) {
+                                continue;
+                            }
+
+                            // Send Video Frame to av-idx and know how many time it takes
+                            frame_info.onlineNum = gOnlineNum;
+                            gettimeofday(&tv_start, NULL);
+                            ret = avSendFrameData(av_index, buf_ret, rsize, &frame_info, sizeof(frame_info));
+                            gettimeofday(&tv_end, NULL);
+
+                            take_sec = tv_end.tv_sec - tv_start.tv_sec, take_us = tv_end.tv_usec - tv_start.tv_usec;
+                            if (take_us < 0) {
+                                take_sec--;
+                                take_us += 1000000;
+                            }
+                            send_frame_us += take_us;
+                            // printf("send_frame_us = %ld us\n", send_frame_us);
+                            total_count++;
+                            if (ret == AV_ER_EXCEED_MAX_SIZE) { // means data not write to queue, send too slow, I want to skip it
+                                printf("%s AV_ER_EXCEED_MAX_SIZE SID[%d] avIndex[%d]\n", __func__, i, av_index);
+                                usleep(5000);
+                                continue;
+                            }
+                            if (ret == AV_ER_SESSION_CLOSE_BY_REMOTE) {
+                                printf("%s AV_ER_SESSION_CLOSE_BY_REMOTE SID[%d] avIndex[%d]\n", __func__, i, av_index);
+                                UnRegEditClientFromVideo(i);
+                                continue;
+                            } else if (ret == AV_ER_REMOTE_TIMEOUT_DISCONNECT) {
+                                printf("%s AV_ER_REMOTE_TIMEOUT_DISCONNECT SID[%d] avIndex[%d]\n", __func__, i, av_index);
+                                UnRegEditClientFromVideo(i);
+                                continue;
+                            } else if (ret == IOTC_ER_INVALID_SID) {
+                                printf("%s Session cant be used anymore SID[%d] avIndex[%d]\n", __func__, i, av_index);
+                                UnRegEditClientFromVideo(i);
+                                continue;
+                            } else if (ret < 0) {
+                                printf("%s SID[%d] avIndex[%d] error[%d]\n", __func__, i, av_index, ret);
+                                UnRegEditClientFromVideo(i);
+                            }
+
+                            send_frame_out = 1;
+                        }
+
+                        if (1 == send_frame_out && fps_count++ >= frame_rate) {
+                            round++;
+                            gettimeofday(&tv2, NULL);
+                            long sec = tv2.tv_sec - tv.tv_sec, usec = tv2.tv_usec - tv.tv_usec;
+                            if (usec < 0) {
+                                sec--;
+                                usec += 1000000;
+                            }
+                            usec += (sec * 1000000);
+
+                            long one_frame_use_time = usec / fps_count;
+                            float fps = (float) 1000000 / one_frame_use_time;
+                            if (fps > hF) hF = fps;
+                            if (lF == 0.0) lF = fps;
+                            else if (fps < lF) lF = fps;
+                            printf("Fps = %f R[%d]\n", fps, round);
+                            fps_count = 0;
+                            total_fps += fps;
+                        }
+
+                        // notice the frames sending time for more specific frame rate control
+                        /*if( sleep_us > send_frame_us ){
+                             usleep(sleep_us-send_frame_us);
+                        }*/
+                        close(nalUnit);
                     }
-
-                    // Send Video Frame to av-idx and know how many time it takes
-                    frame_info.onlineNum = gOnlineNum;
-                    gettimeofday(&tv_start, NULL);
-                    ret = avSendFrameData(av_index, buf_ret, fsize, &frame_info, sizeof(frame_info));
-                    gettimeofday(&tv_end, NULL);
-
-                    take_sec = tv_end.tv_sec-tv_start.tv_sec, take_us = tv_end.tv_usec-tv_start.tv_usec;
-                    if(take_us < 0){
-                        take_sec--;
-                        take_us += 1000000;
-                    }
-                    send_frame_us += take_us;
-                    total_count++;
-
-                    if(ret == AV_ER_EXCEED_MAX_SIZE){ // means data not write to queue, send too slow, I want to skip it
-                        usleep(5000);
-                        continue;
-                    }
-                    else if(ret == AV_ER_SESSION_CLOSE_BY_REMOTE){
-                        printf("%s AV_ER_SESSION_CLOSE_BY_REMOTE SID[%d] avIndex[%d]\n", __func__, i, av_index);
-                        UnRegEditClientFromVideo(i);
-                        continue;
-                    }
-                    else if(ret == AV_ER_REMOTE_TIMEOUT_DISCONNECT){
-                        printf("%s AV_ER_REMOTE_TIMEOUT_DISCONNECT SID[%d] avIndex[%d]\n", __func__, i, av_index);
-                        UnRegEditClientFromVideo(i);
-                        continue;
-                    }
-                    else if(ret == IOTC_ER_INVALID_SID){
-                        printf("%s Session cant be used anymore SID[%d] avIndex[%d]\n", __func__, i, av_index);
-                        UnRegEditClientFromVideo(i);
-                        continue;
-                    }
-                    else if(ret < 0){
-                        printf("%s SID[%d] avIndex[%d] error[%d]\n", __func__, i, av_index, ret);
-                        UnRegEditClientFromVideo(i);
-                    }
-
-                    send_frame_out = 1;
+                    tail = head;
+                    printf("IP-Frame New NAL unit created %ld\n", nalIdx);
+                    sprintf(fileName, "%s.%04ld", argv[1], nalIdx);
+                    nalUnit = open(fileName, O_CREAT | O_WRONLY, 0666);
+                    nalIdx++;
                 }
+                key = 0;
+                head++;
+            }
 
-                if(1 == send_frame_out && fps_count++ >= frame_rate){
-                    round++;
-                    gettimeofday(&tv2, NULL);
-                    long sec = tv2.tv_sec-tv.tv_sec, usec = tv2.tv_usec-tv.tv_usec;
-                    if(usec < 0){
-                        sec--;
-                        usec += 1000000;
-                    }
-                    usec += (sec*1000000);
 
-                    long one_frame_use_time = usec / fps_count;
-                    float fps = (float)1000000/one_frame_use_time;
-                    if(fps > hF) hF = fps;
-                    if(lF == 0.0) lF = fps;
-                    else if(fps < lF) lF = fps;
-                    printf("Fps = %f R[%d]\n", fps, round);
-                    fps_count = 0;
-                    total_fps += fps;
-                }
+            if (data == tail) {
+                write(nalUnit, tail, head - tail);
+                memcpy(tmp, head, DATA_TAIL - head + 1);
+                memcpy(data, tmp, DATA_TAIL - head + 1);
+                head = data + (DATA_TAIL - head + 1);
+            } else {
+                memcpy(tmp, tail, DATA_TAIL - tail + 1);
+                memcpy(data, tmp, DATA_TAIL - tail + 1);
+                head = data + (DATA_TAIL - tail + 1);
+            }
 
-                // notice the frames sending time for more specific frame rate control
-                if( sleep_us > send_frame_us )
-                    usleep(sleep_us-send_frame_us);
-
-                /* Flush Param */
-                memset(buf_ret, 0, fsize);
-                size_ret = 0;
-            }}
         }
-
-
-    /*
-    fp = fopen(gLiveIframePath, "rb");
-    
-    if(fp == NULL){
-        printf("%s: Video File \'%s\' open error!!\n", __func__, gLiveIframePath);
-        printf("[Vidio] is DISABLED!!\n");
-        printf("%s: exit\n", __func__);
+        printf("[%s] exit High/Low [%f/%f] AVG[%f] totalCnt[%d]\n", __func__, hF, lF, (float) total_fps / round,
+               total_count);
+        close(nalUnit);
+        close(f);
         pthread_exit(0);
-    }
-
-    // input file only one I frame for test
-    size = fread(buf, 1, VIDEO_BUF_SIZE, fp);
-    fclose(fp);
-    if(size <= 0){
-        printf("%s: Video File \'%s\' read error!!\n", __func__, gLiveIframePath);
-        printf("[Vidio] is DISABLED!!\n");
-        printf("%s: exit\n", __func__);
-        pthread_exit(0);
-    }
-    */
-
-    }
-    printf("[%s] exit High/Low [%f/%f] AVG[%f] totalCnt[%d]\n", __func__, hF, lF, (float)total_fps/round, total_count);
-    pthread_exit(0);
 }
 
-static void *ThreadAudioFrameData(void *arg)
-{
-    FILE *fp=NULL;
+static void *ThreadAudioFrameData(void *arg) {
+    FILE *fp = NULL;
     char buf[AUDIO_BUF_SIZE];
     int frame_rate = AUDIO_FPS;
-    int sleep_ms = 1000000/frame_rate;
+    int sleep_ms = 1000000 / frame_rate;
     FRAMEINFO_t frame_info;
 
-    if(gAudioFilePath[0]=='\0')
-    {
+    if (gAudioFilePath[0] == '\0') {
         printf("[Audio] is DISABLED!!\n");
         printf("%s: exit\n", __func__);
         pthread_exit(0);
     }
+    // char *cmd = "arecord -f S16_LE -c 1 -r 8000 -t raw -q -";
     fp = fopen(gAudioFilePath, "rb");
-    if(fp == NULL)
-    {
+    // fp = popen(cmd, "r");
+    if (fp == NULL) {
         printf("%s: Audio File \'%s\' open error!!\n", __func__, gAudioFilePath);
         printf("[Audio] is DISABLED!!\n");
         printf("%s: exit\n", __func__);
@@ -743,13 +700,11 @@ static void *ThreadAudioFrameData(void *arg)
     printf("%s start OK\n", __func__);
     printf("[Audio] is ENABLED!!\n");
 
-    while(gProgressRun)
-    {
+    while (gProgressRun) {
         int i;
         int ret;
         int size = fread(buf, 1, AUDIO_FRAME_SIZE, fp);
-        if(size <= 0)
-        {
+        if (size <= 0) {
             printf("rewind audio\n");
             rewind(fp);
             continue;
@@ -757,17 +712,15 @@ static void *ThreadAudioFrameData(void *arg)
 
         frame_info.timestamp = GetTimeStampMs();
 
-        for(i = 0 ; i < MAX_CLIENT_NUMBER; i++)
-        {
+        for (i = 0; i < MAX_CLIENT_NUMBER; i++) {
             //get reader lock
             int lock_ret = pthread_rwlock_rdlock(&gClientInfo[i].lock);
-            if(lock_ret)
+            if (lock_ret)
                 printf("Acquire SID %d rdlock error, ret = %d\n", i, lock_ret);
-            if(gClientInfo[i].av_index < 0 || gClientInfo[i].enable_audio == 0)
-            {
+            if (gClientInfo[i].av_index < 0 || gClientInfo[i].enable_audio == 0) {
                 //release reader lock
                 lock_ret = pthread_rwlock_unlock(&gClientInfo[i].lock);
-                if(lock_ret)
+                if (lock_ret)
                     printf("Acquire SID %d rdlock error, ret = %d\n", i, lock_ret);
                 continue;
             }
@@ -777,30 +730,21 @@ static void *ThreadAudioFrameData(void *arg)
             ret = avSendAudioData(av_index, buf, size, &frame_info, sizeof(FRAMEINFO_t));
             //release reader lock
             lock_ret = pthread_rwlock_unlock(&gClientInfo[i].lock);
-            if(lock_ret)
+            if (lock_ret)
                 printf("Acquire SID %d rdlock error, ret = %d\n", i, lock_ret);
 
-            if(ret == AV_ER_SESSION_CLOSE_BY_REMOTE)
-            {
+            if (ret == AV_ER_SESSION_CLOSE_BY_REMOTE) {
                 printf("%s: AV_ER_SESSION_CLOSE_BY_REMOTE SID[%d] avIndex[%d]\n", __func__, i, av_index);
                 UnRegEditClientFromAudio(i);
-            }
-            else if(ret == AV_ER_REMOTE_TIMEOUT_DISCONNECT)
-            {
+            } else if (ret == AV_ER_REMOTE_TIMEOUT_DISCONNECT) {
                 printf("%s: AV_ER_REMOTE_TIMEOUT_DISCONNECT SID[%d] avIndex[%d]\n", __func__, i, av_index);
                 UnRegEditClientFromAudio(i);
-            }
-            else if(ret == IOTC_ER_INVALID_SID)
-            {
+            } else if (ret == IOTC_ER_INVALID_SID) {
                 printf("%s Session cant be used anymore SID[%d] avIndex[%d]\n", __func__, i, av_index);
                 UnRegEditClientFromAudio(i);
-            }
-            else if(ret == AV_ER_EXCEED_MAX_SIZE)
-            {
+            } else if (ret == AV_ER_EXCEED_MAX_SIZE) {
                 printf("%s AV_ER_EXCEED_MAX_SIZE SID[%d] avIndex[%d]\n", __func__, i, av_index);
-            }
-            else if(ret < 0)
-            {
+            } else if (ret < 0) {
                 printf("%s SID[%d] avIndex[%d] error[%d]\n", __func__, i, av_index, ret);
                 UnRegEditClientFromAudio(i);
             }
@@ -811,7 +755,7 @@ static void *ThreadAudioFrameData(void *arg)
 
     fclose(fp);
 
-    printf("[%s] exit\n",  __func__);
+    printf("[%s] exit\n", __func__);
 
     pthread_exit(0);
 }
@@ -820,9 +764,8 @@ static void *ThreadAudioFrameData(void *arg)
 //########################################################
 //# Start AV server and recv IOCtrl cmd for every new av idx
 //########################################################
-static void *ThreadForAVServerStart(void *arg)
-{
-    int sid = *(int *)arg;
+static void *ThreadForAVServerStart(void *arg) {
+    int sid = *(int *) arg;
     free(arg);
 
     int chid = AV_LIVE_STREAM_CHANNEL;
@@ -841,23 +784,23 @@ static void *ThreadForAVServerStart(void *arg)
     gOnlineNum++;
     RegEditClient(sid, av_index);
     RegEditClientStreamMode(sid, stream_mode);
-    
+
     struct st_SInfoEx session_info;
     session_info.size = sizeof(struct st_SInfoEx);
-    while(1) {
+    while (1) {
         int ret = IOTC_Session_Check_Ex(sid, &session_info);
-        if(ret != IOTC_ER_NoERROR){
+        if (ret != IOTC_ER_NoERROR) {
             break;
         }
         sleep(1);
     }
 
-EXIT:
+    EXIT:
     UnRegEditClientFromVideo(sid);
     UnRegEditClientFromAudio(sid);
     RegEditClientPlaybackMode(sid, PLAYBACK_STOP);
 
-    if(av_index >= 0){
+    if (av_index >= 0) {
         printf("avServStop[%d]\n", av_index);
         avServStop(av_index);
         gOnlineNum--;
@@ -1041,8 +984,7 @@ int StreamoutSendAudioFunc(int timestamp, char* buf, int size)
 //########################################################
 //#  Initialize / Deinitialize client list of AV server
 //########################################################
-static void InitAVInfo()
-{
+static void InitAVInfo() {
     int i;
     for (i = 0; i < MAX_CLIENT_NUMBER; i++) {
         memset(&gClientInfo[i], 0, sizeof(AV_Client));
@@ -1052,8 +994,7 @@ static void InitAVInfo()
     }
 }
 
-static void DeInitAVInfo()
-{
+static void DeInitAVInfo() {
     int i;
     for (i = 0; i < MAX_CLIENT_NUMBER; i++) {
         memset(&gClientInfo[i], 0, sizeof(AV_Client));
@@ -1065,8 +1006,7 @@ static void DeInitAVInfo()
 //########################################################
 //# identity_handler callback function
 //########################################################
-static void IdentityHandle(NebulaDeviceCtx *device, const char *identity, char *psk, unsigned int psk_size)
-{
+static void IdentityHandle(NebulaDeviceCtx *device, const char *identity, char *psk, unsigned int psk_size) {
     int ret = GetPskFromFile(identity, gUserIdentitiesFilePath, psk, psk_size);
     if (ret != 200) {
         printf("[%s] get psk fail\n", __func__);
@@ -1076,8 +1016,9 @@ static void IdentityHandle(NebulaDeviceCtx *device, const char *identity, char *
 //########################################################
 //# command_handler callback function
 //########################################################
-static int CommandHandle(NebulaDeviceCtx *device, const char *identity, const char *func, const NebulaJsonObject *json_args, NebulaJsonObject **json_response)
-{
+static int
+CommandHandle(NebulaDeviceCtx *device, const char *identity, const char *func, const NebulaJsonObject *json_args,
+              NebulaJsonObject **json_response) {
     printf("[%s] %s\n", __func__, func);
 
     int ret = 0;
@@ -1108,13 +1049,13 @@ static int CommandHandle(NebulaDeviceCtx *device, const char *identity, const ch
 
         *json_response = response;
         return 200;
-    }else if(strcmp(func, "queryEventList")==0){
+    } else if (strcmp(func, "queryEventList") == 0) {
         const NebulaJsonObject *json_ctrl;
         printf("%s \n", Nebula_Json_Obj_To_String(json_args));
         Nebula_Json_Obj_Get_Sub_Obj(json_args, "startTime", &json_ctrl);
         int starttime = 0;
         ret = Nebula_Json_Obj_Get_Int(json_ctrl, &starttime);
-        
+
         Nebula_Json_Obj_Get_Sub_Obj(json_args, "endTime", &json_ctrl);
         int endtime = 0;
         Nebula_Json_Obj_Get_Int(json_ctrl, &endtime);
@@ -1204,8 +1145,7 @@ static int CommandHandle(NebulaDeviceCtx *device, const char *identity, const ch
 //########################################################
 //# settings_change_handler callback function
 //########################################################
-static int SettingsChangeHandle(NebulaDeviceCtx* device, const char* settings)
-{
+static int SettingsChangeHandle(NebulaDeviceCtx *device, const char *settings) {
     FILE *fp = NULL;
     fp = fopen(gDefaultSettingsFilePath, "w+");
     if (fp) {
@@ -1219,16 +1159,14 @@ static int SettingsChangeHandle(NebulaDeviceCtx* device, const char* settings)
     return 0;
 }
 
-static int DeviceLoginStateHandle(NebulaDeviceCtx* device, NebulaDeviceLoginState state)
-{
+static int DeviceLoginStateHandle(NebulaDeviceCtx *device, NebulaDeviceLoginState state) {
     printf("in %s\n", __func__);
     printf("login state[%d]\n", state);
     return 0;
 }
 
 
-static int CreateStreamoutThread()
-{
+static int CreateStreamoutThread() {
     int ret = 0;
 #if ENABLE_EMULATOR
     ret = Emulator_Initialize(EMULATOR_MODE_SINGLESTREAM, AV_DASA_LEVEL_QUALITY_LOW, StreamoutSendVideoFunc, StreamoutSendAudioFunc);
@@ -1240,26 +1178,24 @@ static int CreateStreamoutThread()
     pthread_t thread_video_frame_data_id;
     pthread_t thread_audio_frame_data_id;
 
-    if((ret = pthread_create(&thread_video_frame_data_id, NULL, &ThreadVideoFrameData, NULL)))
-    {
+    if ((ret = pthread_create(&thread_video_frame_data_id, NULL, &ThreadVideoFrameData, NULL))) {
         printf("pthread_create ret=%d\n", ret);
         return -1;
     }
     pthread_detach(thread_video_frame_data_id);
 
-    if((ret = pthread_create(&thread_audio_frame_data_id, NULL, &ThreadAudioFrameData, NULL)))
-    {
+    if ((ret = pthread_create(&thread_audio_frame_data_id, NULL, &ThreadAudioFrameData, NULL))) {
         printf("pthread_create ret=%d\n", ret);
         return -1;
     }
     pthread_detach(thread_audio_frame_data_id);
+
 #endif
     return 0;
 }
 
-static void DeviceServerBind(NebulaDeviceCtx *device_ctx, const char *pin_code, const char *psk, int timeout_ms)
-{
-    while(1) {
+static void DeviceServerBind(NebulaDeviceCtx *device_ctx, const char *pin_code, const char *psk, int timeout_ms) {
+    while (1) {
         int ret = Nebula_Device_Bind(device_ctx, pin_code, psk, timeout_ms, &gBindAbort);
         printf("Nebula_Device_Bind ret[%d]\n", ret);
         if (ret == NEBULA_ER_TIMEOUT)
@@ -1270,12 +1206,11 @@ static void DeviceServerBind(NebulaDeviceCtx *device_ctx, const char *pin_code, 
     }
 }
 
-static void *ThreadNebulaLogin(void *arg)
-{
-    NebulaDeviceCtx *device_ctx = (NebulaDeviceCtx *)arg;
+static void *ThreadNebulaLogin(void *arg) {
+    NebulaDeviceCtx *device_ctx = (NebulaDeviceCtx *) arg;
     int ret = 0;
     char admin_psk[MAX_NEBULA_PSK_LENGTH + 1] = {0};
-    while(gProgressRun) {
+    while (gProgressRun) {
         int ret = Nebula_Device_Login(device_ctx, DeviceLoginStateHandle);
         printf("Nebula_Device_Login ret[%d]\n", ret);
         if (ret == NEBULA_ER_NoERROR) {
@@ -1308,10 +1243,9 @@ static void *ThreadNebulaLogin(void *arg)
     return NULL;
 }
 
-static void *ThreadIotcDeviceLogin(void *arg)
-{
-    NebulaDeviceCtx *device_ctx = (NebulaDeviceCtx *)arg;
-    while(gProgressRun){
+static void *ThreadIotcDeviceLogin(void *arg) {
+    NebulaDeviceCtx *device_ctx = (NebulaDeviceCtx *) arg;
+    while (gProgressRun) {
         printf("IOTC_Device_Login_By_Nebula() start\n");
         int ret = IOTC_Device_Login_By_Nebula(device_ctx);
         printf("IOTC_Device_Login_By_Nebula() ret = %d\n", ret);
@@ -1324,61 +1258,65 @@ static void *ThreadIotcDeviceLogin(void *arg)
     return NULL;
 }
 
-static int ShouldDeviceGoToSleep(){
-    if(!gEnableWakeUp)
+static int ShouldDeviceGoToSleep() {
+    if (!gEnableWakeUp)
         return 0;
 
     struct timeval now;
     gettimeofday(&now, NULL);
 
-    if(now.tv_sec - gNoSessionTime.tv_sec > GO_TO_SLEEP_AFTER_NO_SESSION_WITH_SEC)
+    if (now.tv_sec - gNoSessionTime.tv_sec > GO_TO_SLEEP_AFTER_NO_SESSION_WITH_SEC)
         return 1;
-    
+
     return 0;
 }
 
-static void ResetNoSessionTime(){
+static void ResetNoSessionTime() {
     gettimeofday(&gNoSessionTime, NULL);
 }
 
-static void UpdateNoSessionTime(){
-    if (gOnlineNum > 0){
+static void UpdateNoSessionTime() {
+    if (gOnlineNum > 0) {
         ResetNoSessionTime();
     }
 }
 
-static void PrepareWakeupDataBeforeSleep(NebulaDeviceCtx *device_ctx, NebulaSocketProtocol nebula_protocol, char *wakeup_pattern, NebulaWakeUpData **data, unsigned int *data_count){
+static void
+PrepareWakeupDataBeforeSleep(NebulaDeviceCtx *device_ctx, NebulaSocketProtocol nebula_protocol, char *wakeup_pattern,
+                             NebulaWakeUpData **data, unsigned int *data_count) {
     int ret = 0;
     NebulaSleepConfig config;
     struct timeval now = {0};
     gettimeofday(&now, NULL);
 
-    sprintf(wakeup_pattern, "WakeMeUp%u", (unsigned int)now.tv_usec);
+    sprintf(wakeup_pattern, "WakeMeUp%u", (unsigned int) now.tv_usec);
 
     config.cb = sizeof(NebulaSleepConfig);
-    config.wake_up_pattern = (unsigned char *)wakeup_pattern;
+    config.wake_up_pattern = (unsigned char *) wakeup_pattern;
     config.pattern_size = strlen(wakeup_pattern);
     config.protocol = nebula_protocol;
     config.alive_interval_sec = 0; // Set 0 for default values. UDP: 25 secs, TCP: 90 secs
 
-    do{
+    do {
         ret = Nebula_Device_Get_Sleep_PacketEx(device_ctx, &config, data, data_count, 10000);
-    }while(ret != NEBULA_ER_NoERROR);
+    } while (ret != NEBULA_ER_NoERROR);
 
 }
 
-static void WaitForWakeupPatternWhenSleeping(NebulaSocketProtocol nebula_protocol, char *wakeup_pattern, NebulaWakeUpData *data, unsigned int data_count){
+static void
+WaitForWakeupPatternWhenSleeping(NebulaSocketProtocol nebula_protocol, char *wakeup_pattern, NebulaWakeUpData *data,
+                                 unsigned int data_count) {
     printf("Device going to sleep\n");
     int max_sock_fd = 0, i = 0;
     struct sockaddr_in *server;
     int *sock_fd;
     int recv_wakeup = 0;
-    
-    sock_fd = (int*)malloc(data_count*sizeof(int));
-    server = (struct sockaddr_in *)malloc(data_count*sizeof(struct sockaddr_in));
+
+    sock_fd = (int *) malloc(data_count * sizeof(int));
+    server = (struct sockaddr_in *) malloc(data_count * sizeof(struct sockaddr_in));
 
     //Device sleep simulate
-    for(i = 0; i<data_count; i++){
+    for (i = 0; i < data_count; i++) {
         if (nebula_protocol == NEBULA_PROTO_TCP)
             sock_fd[i] = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
         else if (nebula_protocol == NEBULA_PROTO_UDP)
@@ -1388,7 +1326,7 @@ static void WaitForWakeupPatternWhenSleeping(NebulaSocketProtocol nebula_protoco
         server[i].sin_port = htons(data[i].port);
         inet_pton(AF_INET, data[i].ip, &server[i].sin_addr.s_addr);
 
-        if (connect(sock_fd[i], (struct sockaddr *)&server[i], sizeof(server[i])) < 0) {
+        if (connect(sock_fd[i], (struct sockaddr *) &server[i], sizeof(server[i])) < 0) {
             printf("Connect to server[%d] error------fail\n", i);
             return;
         }
@@ -1397,31 +1335,32 @@ static void WaitForWakeupPatternWhenSleeping(NebulaSocketProtocol nebula_protoco
     }
     printf("Bridge server connected------ok\n");
 
-    while(1) {
+    while (1) {
         fd_set read_fd;
         FD_ZERO(&read_fd);
-        
+
         struct timeval timeout;
         timeout.tv_sec = data[0].login_interval_sec;
         timeout.tv_usec = 0;
 
-        for(i = 0; i<data_count; ++i){
+        for (i = 0; i < data_count; ++i) {
             send(sock_fd[i], data[i].sleep_alive_packet, data[i].packet_size, 0);
-            printf("Sleep packet: send to %s:%hu size:%u interval:%u\n", data[i].ip, data[i].port, data[i].packet_size, data[i].login_interval_sec);
+            printf("Sleep packet: send to %s:%hu size:%u interval:%u\n", data[i].ip, data[i].port, data[i].packet_size,
+                   data[i].login_interval_sec);
             FD_SET(sock_fd[i], &read_fd);
         }
 
         int selected_fd = select(max_sock_fd + 1, &read_fd, NULL, NULL, &timeout);
         if (selected_fd != 0) {
-            for(i = 0; i<data_count; ++i){
-                if(FD_ISSET(sock_fd[i], &read_fd) != 0){
+            for (i = 0; i < data_count; ++i) {
+                if (FD_ISSET(sock_fd[i], &read_fd) != 0) {
                     printf("receiving...\n");
                     char buf[256] = {0};
                     int recv_size = recv(sock_fd[i], &buf, sizeof(buf), 0);
 
                     printf("Recv: %s size [%d]\n", buf, recv_size);
 
-                    if (memcmp(buf, wakeup_pattern, strlen(wakeup_pattern)) == 0 ) {
+                    if (memcmp(buf, wakeup_pattern, strlen(wakeup_pattern)) == 0) {
                         printf("Receive Wakeup Pattern------ok\n");
                         printf("Device Wakeup\n");
                         recv_wakeup = 1;
@@ -1429,19 +1368,19 @@ static void WaitForWakeupPatternWhenSleeping(NebulaSocketProtocol nebula_protoco
                     }
                 }
             }
-            if(recv_wakeup == 1)
+            if (recv_wakeup == 1)
                 break;
         }
     }//End while
 
     // Release the resource
-    if(sock_fd){
-        for(i = 0; i<data_count; ++i){
+    if (sock_fd) {
+        for (i = 0; i < data_count; ++i) {
             close(sock_fd[i]);
         }
         free(sock_fd);
     }
-    if(server){
+    if (server) {
         free(server);
     }
 
@@ -1449,8 +1388,7 @@ static void WaitForWakeupPatternWhenSleeping(NebulaSocketProtocol nebula_protoco
 
 }
 
-static void PrintUsage()
-{
+static void PrintUsage() {
     printf("#########################################################################\n");
     printf("./Nebula_Device_AV [options]\n");
     printf("[options]\n");
@@ -1463,52 +1401,52 @@ static void PrintUsage()
     printf("[O]\t-h \t\t\t\tShow usage\n");
 }
 
-static int ParseInputOptions(int argc, char *argv[])
-{
+static int ParseInputOptions(int argc, char *argv[]) {
     int option = 0;
-    while((option = getopt(argc, argv, "u:f:b:hvw")) > 0){
-        switch(option) {
-          case 'u':
-            strncpy(gUdid, optarg, sizeof(gUdid));
-            gUdid[MAX_UDID_LENGTH] = '\0';
-            printf("UDID %s\n", gUdid);
-            break;
-          case 'f':
-            strncpy(gProfilePath, optarg, sizeof(gProfilePath));
-            printf("Profile %s\n", gProfilePath);
-            break;
-          case 'b':
-            if((strlen(optarg)==strlen("l") && strncmp(optarg, "l", 1) == 0)
-               || (strlen(optarg)==strlen("local") && strncmp(optarg, "local", strlen("local")) == 0)) {
-                gBindType = LOCAL_BIND;
-            } else if((strlen(optarg)==strlen("s") && strncmp(optarg, "s", 1) == 0)
-               || (strlen(optarg)==strlen("server") && strncmp(optarg, "server", strlen("server")) == 0)) {
-                gBindType = SERVER_BIND;
-            } else if((strlen(optarg)==strlen("n") && strncmp(optarg, "n", 1) == 0)
-               || (strlen(optarg)==strlen("none") && strncmp(optarg, "none", strlen("none")) == 0)) {
-                gBindType = DISABLE_BIND;
-            } else {
-                printf("Unknown optarg %s\n", optarg);
+    while ((option = getopt(argc, argv, "u:f:b:hvw")) > 0) {
+        switch (option) {
+            case 'u':
+                strncpy(gUdid, optarg, sizeof(gUdid));
+                gUdid[MAX_UDID_LENGTH] = '\0';
+                printf("UDID %s\n", gUdid);
+                break;
+            case 'f':
+                strncpy(gProfilePath, optarg, sizeof(gProfilePath));
+                printf("Profile %s\n", gProfilePath);
+                break;
+            case 'b':
+                if ((strlen(optarg) == strlen("l") && strncmp(optarg, "l", 1) == 0)
+                    || (strlen(optarg) == strlen("local") && strncmp(optarg, "local", strlen("local")) == 0)) {
+                    gBindType = LOCAL_BIND;
+                } else if ((strlen(optarg) == strlen("s") && strncmp(optarg, "s", 1) == 0)
+                           ||
+                           (strlen(optarg) == strlen("server") && strncmp(optarg, "server", strlen("server")) == 0)) {
+                    gBindType = SERVER_BIND;
+                } else if ((strlen(optarg) == strlen("n") && strncmp(optarg, "n", 1) == 0)
+                           || (strlen(optarg) == strlen("none") && strncmp(optarg, "none", strlen("none")) == 0)) {
+                    gBindType = DISABLE_BIND;
+                } else {
+                    printf("Unknown optarg %s\n", optarg);
+                    return -1;
+                }
+                break;
+            case 'v':
+                gEnableVsaas = true;
+                break;
+            case 'p':
+                gEnablePushNotification = true;
+                break;
+            case 'w':
+                gEnableWakeUp = true;
+                break;
+            case 'h':
                 return -1;
-            }
-            break;
-          case 'v':
-            gEnableVsaas = true;
-            break;
-          case 'p':
-            gEnablePushNotification = true;
-            break;
-          case 'w':
-            gEnableWakeUp = true;
-            break;
-          case 'h':
-            return -1;
-          default:
-            printf("Unknown option %c\n", option);
-            return -1;
+            default:
+                printf("Unknown option %c\n", option);
+                return -1;
         }
     }
-    if(strlen(gUdid) == 0 || strlen(gProfilePath) == 0){
+    if (strlen(gUdid) == 0 || strlen(gProfilePath) == 0) {
         printf("Must specify UDID and profile\n");
         return -1;
     }
@@ -1521,8 +1459,8 @@ static int ParseInputOptions(int argc, char *argv[])
 //########################################################
 #define MAX_VSAAS_DEMO_ROUND 1
 #define FAKE_EVENT_TRIGGER_TIME_SEC 60
-static void *ThreadFakeVsaasEvent(void *arg)
-{
+
+static void *ThreadFakeVsaasEvent(void *arg) {
     // In this sample we use hard coeded file name, 
     // and trigger fake event every 60 secs periodically.
     printf("%s start\n", __func__);
@@ -1533,13 +1471,15 @@ static void *ThreadFakeVsaasEvent(void *arg)
     NebulaJsonObject *attr_obj = NULL;
     int demo_round = 0;
 
-    while(gProgressRun && demo_round <= MAX_VSAAS_DEMO_ROUND) {
-        if(gVsaasConfigExist) {
+    while (gProgressRun && demo_round <= MAX_VSAAS_DEMO_ROUND) {
+        if (gVsaasConfigExist) {
             current_time_sec = GetTimeStampSec();
-            if (current_time_sec-last_event_time_sec > FAKE_EVENT_TRIGGER_TIME_SEC) {
+            if (current_time_sec - last_event_time_sec > FAKE_EVENT_TRIGGER_TIME_SEC) {
 
                 // notify VSaaS server to pull the record video. 
-                sprintf(att_json_str, "{\"starttime\":\"%lu\",\"protocol\":\"tutkv4\",\"event_id\":\"%d\",\"event_file\":\"%s\",\"media_type\":\"0\"}", current_time_sec, VSAAS_EVENT_GENERAL, gRecordFile);
+                sprintf(att_json_str,
+                        "{\"starttime\":\"%lu\",\"protocol\":\"tutkv4\",\"event_id\":\"%d\",\"event_file\":\"%s\",\"media_type\":\"0\"}",
+                        current_time_sec, VSAAS_EVENT_GENERAL, gRecordFile);
 
                 printf("avServNotifyCloudRecordStream\n");
                 Nebula_Json_Obj_Create_From_String(att_json_str, &attr_obj);
@@ -1563,7 +1503,7 @@ static void *ThreadFakeVsaasEvent(void *arg)
 //########################################################
 static void *ThreadFakePushNotification(void *arg) {
     printf("%s start\n", __func__);
-    NebulaDeviceCtx *device_ctx = (NebulaDeviceCtx *)arg;
+    NebulaDeviceCtx *device_ctx = (NebulaDeviceCtx *) arg;
     int ret = 0;
     NebulaJsonObject *notification_obj = NULL;
     unsigned int push_abort = 0;
@@ -1592,8 +1532,7 @@ static void *ThreadFakePushNotification(void *arg) {
 //########################################################
 //# Callback function for avEnableVSaaS()
 //########################################################
-static void VsaasConfigChangedHandle(const char *vsaas_config)
-{
+static void VsaasConfigChangedHandle(const char *vsaas_config) {
     printf("Enter %s\n", __func__);
     printf("Get VSaaS info:\n%s\n", vsaas_config);
     //save VSaaSconfig for avEnableVSaaS()
@@ -1607,8 +1546,7 @@ static void VsaasConfigChangedHandle(const char *vsaas_config)
     }
 }
 
-static void VSaaSUpdateContractInfoHandle(const VSaaSContractInfo *contract_info)
-{
+static void VSaaSUpdateContractInfoHandle(const VSaaSContractInfo *contract_info) {
     printf("Enter %s\n", __func__);
     printf("contract_type=%u\n", contract_info->contract_type);
     printf("event_recording_max_sec=%d\n", contract_info->event_recording_max_sec);
@@ -1616,7 +1554,7 @@ static void VSaaSUpdateContractInfoHandle(const VSaaSContractInfo *contract_info
     printf("recording_max_kbps=%d\n", contract_info->recording_max_kbps);
     printf("video_max_high=%d\n", contract_info->video_max_high);
     printf("video_max_width=%d\n", contract_info->video_max_width);
-    
+
     gVsaasContractInfo.contract_type = contract_info->contract_type;
     gVsaasContractInfo.event_recording_max_sec = contract_info->event_recording_max_sec;
     gVsaasContractInfo.video_max_fps = contract_info->video_max_fps;
@@ -1630,8 +1568,7 @@ static void VSaaSUpdateContractInfoHandle(const VSaaSContractInfo *contract_info
 //########################################################
 //# Main function
 //########################################################
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     int ret = 0;
     FILE *fp = NULL;
     NebulaDeviceCtx *device_ctx = NULL;
@@ -1655,13 +1592,13 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-NEBULA_DEVICE_START:
+    NEBULA_DEVICE_START:
     gProgressRun = true;
     gBindAbort = 0;
 
     /* Check command line options */
     ret = ParseInputOptions(argc, argv);
-    if(ret < 0){
+    if (ret < 0) {
         printf("ParseInputOptions ret[%d]\n", ret);
         PrintUsage();
         return -1;
@@ -1678,7 +1615,7 @@ NEBULA_DEVICE_START:
     profile_buf[file_size] = '\0';
 
     ret = loadDisposableParams(gPinCode, gSecretId, NULL);
-    if(ret < 0) {
+    if (ret < 0) {
         printf("loadDisposableParams()=%d, %s exit...!!\n", ret, argv[0]);
         return -1;
     }
@@ -1725,7 +1662,8 @@ NEBULA_DEVICE_START:
         return -1;
     }
     profile_str = Nebula_Json_Obj_To_String(gProfileJsonObj);
-    ret = Nebula_Device_New(gUdid, gSecretId, profile_str, CommandHandle, IdentityHandle, SettingsChangeHandle, &device_ctx);
+    ret = Nebula_Device_New(gUdid, gSecretId, profile_str, CommandHandle, IdentityHandle, SettingsChangeHandle,
+                            &device_ctx);
     printf("Nebula_Device_New ret[%d]\n", ret);
     if (ret != NEBULA_ER_NoERROR) {
         printf("%s exit...!!\n", argv[0]);
@@ -1733,7 +1671,7 @@ NEBULA_DEVICE_START:
     }
     free(profile_buf);
 
-    if(gEnableVsaas) {
+    if (gEnableVsaas) {
         //read vsaas info file and enable vsaas
         char *vsaas_info = NULL;
         FILE *vsaas_info_file_ptr = NULL;
@@ -1749,8 +1687,8 @@ NEBULA_DEVICE_START:
             file_size = ftell(vsaas_info_file_ptr);
             rewind(vsaas_info_file_ptr);
 
-            vsaas_info = (char*)malloc(sizeof(char)*file_size);
-            if(vsaas_info == NULL) {
+            vsaas_info = (char *) malloc(sizeof(char) * file_size);
+            if (vsaas_info == NULL) {
                 printf("memory alloc fail!\n");
                 return -1;
             }
@@ -1758,7 +1696,8 @@ NEBULA_DEVICE_START:
             fread(vsaas_info, 1, file_size, vsaas_info_file_ptr);
 
             printf("Enable VSaaS with preload data!\n");
-            ret = avEnableVSaaSByNebula(device_ctx, vsaas_info, VsaasConfigChangedHandle, VSaaSUpdateContractInfoHandle);
+            ret = avEnableVSaaSByNebula(device_ctx, vsaas_info, VsaasConfigChangedHandle,
+                                        VSaaSUpdateContractInfoHandle);
             fclose(vsaas_info_file_ptr);
             free(vsaas_info);
             gVsaasConfigExist = true;
@@ -1798,7 +1737,7 @@ NEBULA_DEVICE_START:
         free(settings);
 
         pthread_t fake_push_thread_id;
-        if (pthread_create(&fake_push_thread_id, NULL, ThreadFakePushNotification, (void *)device_ctx) < 0) {
+        if (pthread_create(&fake_push_thread_id, NULL, ThreadFakePushNotification, (void *) device_ctx) < 0) {
             printf("create ThreadFakePushNotification failed!\n");
         } else {
             pthread_detach(fake_push_thread_id);
@@ -1823,7 +1762,7 @@ NEBULA_DEVICE_START:
 
     ResetNoSessionTime();
 
-    while(ShouldDeviceGoToSleep()==0) {
+    while (ShouldDeviceGoToSleep() == 0) {
         ret = IOTC_Device_Listen_By_Nebula(device_ctx, 10000);
         printf("IOTC_Device_Listen_By_Nebula ret[%d]\n", ret);
         if (ret < 0) {
@@ -1838,17 +1777,19 @@ NEBULA_DEVICE_START:
             printf("Session[%d] connect!\n", ret);
             struct st_SInfoEx session_info;
             session_info.size = sizeof(session_info);
-            if(IOTC_Session_Check_Ex(ret, &session_info) == IOTC_ER_NoERROR) {
+            if (IOTC_Session_Check_Ex(ret, &session_info) == IOTC_ER_NoERROR) {
                 char *mode[3] = {"P2P", "RLY", "LAN"};
-                if( isdigit( session_info.RemoteIP[0] ))
+                if (isdigit(session_info.RemoteIP[0]))
                     printf("Client is from[IP:%s, Port:%d] Mode[%s] VPG[%d:%d:%d] VER[%X] NAT[%d] AES[%d]\n", \
-                    session_info.RemoteIP, session_info.RemotePort, mode[(int)session_info.Mode], session_info.VID, session_info.PID, session_info.GID, session_info.IOTCVersion, session_info.RemoteNatType, session_info.isSecure);
+                    session_info.RemoteIP, session_info.RemotePort, mode[(int) session_info.Mode], session_info.VID,
+                           session_info.PID, session_info.GID, session_info.IOTCVersion, session_info.RemoteNatType,
+                           session_info.isSecure);
 
-                int *sid = (int *)malloc(sizeof(int));
+                int *sid = (int *) malloc(sizeof(int));
                 *sid = ret;
                 pthread_t thread_id;
-                ret = pthread_create(&thread_id, NULL, &ThreadForAVServerStart, (void *)sid);
-                if(ret < 0) {
+                ret = pthread_create(&thread_id, NULL, &ThreadForAVServerStart, (void *) sid);
+                if (ret < 0) {
                     printf("pthread_create ThreadForAVServerStart failed ret[%d]\n", ret);
                 } else {
                     pthread_detach(thread_id);
@@ -1861,7 +1802,7 @@ NEBULA_DEVICE_START:
     gBindAbort = 1;
     Nebula_Json_Obj_Release(gProfileJsonObj);
 
-    if(gEnableWakeUp){
+    if (gEnableWakeUp) {
         // Prepare wakeup data before deinitialize modules
         PrepareWakeupDataBeforeSleep(device_ctx, nebula_protocol, wakeup_pattern, &sleep_data, &sleep_data_count);
     }
@@ -1876,7 +1817,7 @@ NEBULA_DEVICE_START:
     printf("Nebula_DeInitialize\n");
     DeInitAVInfo();
 
-    if(gEnableWakeUp){
+    if (gEnableWakeUp) {
         // The code here is just for demo, users should implement the wakeup process according to your pratical use.
         // Wait for wakeup
         WaitForWakeupPatternWhenSleeping(nebula_protocol, wakeup_pattern, sleep_data, sleep_data_count);
