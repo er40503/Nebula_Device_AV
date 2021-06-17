@@ -589,7 +589,8 @@ static void *ThreadVideoFrameData(void *arg) {
                             send_frame_us += take_us;
                             // printf("send_frame_us = %ld us\n", send_frame_us);
                             total_count++;
-                            if (ret == AV_ER_EXCEED_MAX_SIZE) { // means data not write to queue, send too slow, I want to skip it
+                            if (ret ==
+                                AV_ER_EXCEED_MAX_SIZE) { // means data not write to queue, send too slow, I want to skip it
                                 printf("%s AV_ER_EXCEED_MAX_SIZE SID[%d] avIndex[%d]\n", __func__, i, av_index);
                                 usleep(5000);
                                 continue;
@@ -599,7 +600,8 @@ static void *ThreadVideoFrameData(void *arg) {
                                 UnRegEditClientFromVideo(i);
                                 continue;
                             } else if (ret == AV_ER_REMOTE_TIMEOUT_DISCONNECT) {
-                                printf("%s AV_ER_REMOTE_TIMEOUT_DISCONNECT SID[%d] avIndex[%d]\n", __func__, i, av_index);
+                                printf("%s AV_ER_REMOTE_TIMEOUT_DISCONNECT SID[%d] avIndex[%d]\n", __func__, i,
+                                       av_index);
                                 UnRegEditClientFromVideo(i);
                                 continue;
                             } else if (ret == IOTC_ER_INVALID_SID) {
@@ -661,13 +663,13 @@ static void *ThreadVideoFrameData(void *arg) {
                 memcpy(data, tmp, DATA_TAIL - tail + 1);
                 head = data + (DATA_TAIL - tail + 1);
             }
-
         }
-        printf("[%s] exit High/Low [%f/%f] AVG[%f] totalCnt[%d]\n", __func__, hF, lF, (float) total_fps / round,
-               total_count);
-        close(nalUnit);
-        close(f);
-        pthread_exit(0);
+    }
+    printf("[%s] exit High/Low [%f/%f] AVG[%f] totalCnt[%d]\n", __func__, hF, lF, (float) total_fps / round,
+           total_count);
+    close(nalUnit);
+    close(f);
+    pthread_exit(0);
 }
 
 static void *ThreadAudioFrameData(void *arg) {
