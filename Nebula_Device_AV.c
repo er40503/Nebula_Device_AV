@@ -500,8 +500,14 @@ static void *ThreadVideoFrameData(void *arg) {
 
     long int nalIdx = 0;
     int nalUnit = -1;
+
+    unsigned char *nalu;
+    int nalu_size = 0;
+
     unsigned long diff;
     int key = 0;
+
+
     DATA_TAIL = data + MAX_BUFFER_SIZE - 1;
     head = data;
 
@@ -512,6 +518,18 @@ static void *ThreadVideoFrameData(void *arg) {
         printf("%s: exit\n", __func__);
         pthread_exit(0);
     }
+
+    /* Get the size of the file. */
+    int fsize;
+    struct stat s;
+    int status = fstat(fd, &s);
+    if (status == -1) { /* Get file size */
+        printf("fstat");
+        exit(0);
+    }
+    fsize = s.st_size;
+    nalu = malloc(fsize);
+
 
     printf("%s start OK\n", __func__);
     printf("[Video] is ENABLED!!\n");
@@ -525,7 +543,7 @@ static void *ThreadVideoFrameData(void *arg) {
                 memset(data, 0, MAX_BUFFER_SIZE); //Init Matrix
                 DATA_TAIL = data + MAX_BUFFER_SIZE - 1;
                 head = data;
-//            break
+//                break;
             }
 
             tail = data;
@@ -548,9 +566,13 @@ static void *ThreadVideoFrameData(void *arg) {
                 if (key == 1) {
                     if (nalUnit > 0) {
 //                    write(nalUnit, tail, head - tail);
-                        int strmsize = read(nalUnit, tail, head - tail);
+                        memcpy(nalu + nalu_size, tail, head - tail);
+                        nalu_size += (head - tail);
+//                        write(nalUnit, ret, ret_size); // write buf in fd
+//                        printf("ret_size = %d\n", ret_size);
+                        memset(nalu, 0, nalu_size);
+                        nalu_size = 0;
                         // TUTK Program starts here...
-                        gettimeofday(&tteststart, NULL); //TTest
                         frame_info.timestamp = GetTimeStampMs();
                         send_frame_out = 0;
                         take_sec = 0, take_us = 0, send_frame_us = 0;
@@ -590,7 +612,8 @@ static void *ThreadVideoFrameData(void *arg) {
                             send_frame_us += take_us;
                             // printf("send_frame_us = %ld us\n", send_frame_us);
                             total_count++;
-                            if (ret == AV_ER_EXCEED_MAX_SIZE) { // means data not write to queue, send too slow, I want to skip it
+                            if (ret ==
+                                AV_ER_EXCEED_MAX_SIZE) { // means data not write to queue, send too slow, I want to skip it
                                 printf("%s AV_ER_EXCEED_MAX_SIZE SID[%d] avIndex[%d]\n", __func__, i, av_index);
                                 usleep(5000);
                                 continue;
@@ -655,7 +678,9 @@ static void *ThreadVideoFrameData(void *arg) {
 
             if (data == tail) {
 //                write(nalUnit, tail, head - tail);
-                read(nalUnit, tail, head - tail);
+                memcpy(nalu + nalu_size, tail, head - tail);
+                nalu_size += (head - tail);
+
                 memcpy(tmp, head, DATA_TAIL - head + 1);
                 memcpy(data, tmp, DATA_TAIL - head + 1);
                 head = data + (DATA_TAIL - head + 1);
@@ -668,9 +693,10 @@ static void *ThreadVideoFrameData(void *arg) {
 //        write(nalUnit, data, (DATA_TAIL - data));
         read(nalUnit, data, (DATA_TAIL - data));
         close(nalUnit);
-        close(f);
+        close(fd);
     }
-    printf("[%s] exit High/Low [%f/%f] AVG[%f] totalCnt[%d]\n", __func__, hF, lF, (float) total_fps / round, total_count);
+    printf("[%s] exit High/Low [%f/%f] AVG[%f] totalCnt[%d]\n", __func__, hF, lF, (float) total_fps / round,
+           total_count);
     pthread_exit(0);
 }
 
