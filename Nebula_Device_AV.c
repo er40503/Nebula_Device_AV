@@ -19,6 +19,10 @@
 #include "sample_constants.h"
 
 
+#include "h264_stream.h"
+#include <stdint.h>
+#include <errno.h>
+
 //########################################################
 //# Nebula configurations data
 //########################################################
@@ -42,7 +46,8 @@ static bool gProgressRun = false;
 //########################################################
 //# AV file path
 //########################################################
-static char gLiveIframePath[] = "./video/I_000.bin";
+static char gLiveIframePath[] = "/mnt/sdcard/mpi_test/PBmmap_.0";
+// static char gLiveIframePath[] = "/tmp/Vfifo";
 static char gAudioFilePath[] = "./audio/beethoven_8k_16bit_mono.raw";
 static char gVsaasInfoFilePath[] = "./vsaasinfo";
 static char gRecordFile[] = "frames";
@@ -473,13 +478,16 @@ int StartAvServer(int sid, unsigned char chid, unsigned int timeout_sec, unsigne
 //#Thread - Send live streaming
 //########################################################
 static void *ThreadVideoFrameData(void *arg) {
+
+#define BUFSIZE 16*1024*1024
+
     unsigned int total_count = 0;
     float hF = 0.0, lF = 0.0, total_fps = 0;
     long take_sec = 0, take_us = 0, send_frame_us = 0;
     int fps_count = 0, round = 0, frame_rate = FPS, sleep_us = 1000000 / frame_rate;
     int i = 0, av_index = 0, enable_video = 0, send_frame_out = 0, size = 0, ret = 0, lock_ret = 0;
 
-    char buf[VIDEO_BUF_SIZE];
+    // char buf[VIDEO_BUF_SIZE];
     struct timeval tv, tv2;
     struct timeval tv_start, tv_end;
 
@@ -493,7 +501,7 @@ static void *ThreadVideoFrameData(void *arg) {
     unsigned MAX_BUFFER_SIZE = 256;
     unsigned char data[MAX_BUFFER_SIZE];  // 256 Bytes
     unsigned char tmp[MAX_BUFFER_SIZE];
-    unsigned char *head;
+    //unsigned char *head;
     unsigned char *tail;
     unsigned char *DATA_TAIL;
     memset(data, 0, MAX_BUFFER_SIZE); //Init Matrix
@@ -501,23 +509,52 @@ static void *ThreadVideoFrameData(void *arg) {
     long int nalIdx = 0;
     int nalUnit = -1;
 
-    unsigned char *nalu;
-    int nalu_size = 0;
+//    unsigned char *nalu;
+//    int nalu_size = 0;
 
     unsigned long diff;
     int key = 0;
 
+    int ericnt = 0;
 
-    DATA_TAIL = data + MAX_BUFFER_SIZE - 1;
-    head = data;
+    /*==========================================================================*/
+    size_t rsz = 0;
+    size_t sz = 0;
+    int64_t off = 0;
+    uint8_t *p = buf;
+    int nal_start, nal_end;
+    //this is to identify whether pps is written or not
+    char *pps_buf[32];
+    int pps_buf_size[32];
+    int cnt = 0;
+    char *head;
+    int total_byte = 0;
+    FILE *fp;
+    char str[50];
+    int freadtime = 0;
 
-    int fd = open(gLiveIframePath, O_RDONLY);
+    char *nalu;
+    int nalu_size = 0;
+
+    //DATA_TAIL = data + MAX_BUFFER_SIZE - 1;
+    //head = data;
+
+    // mkfifo(gLiveIframePath, 0666);
+    /*int fd = open(gLiveIframePath, O_RDONLY);
     if (fd == -1) {
         printf("%s: Video File \'%s\' open error!!\n", __func__, gLiveIframePath);
         printf("[Vidio] is DISABLED!!\n");
         printf("%s: exit\n", __func__);
         pthread_exit(0);
+    }*/
+    /*==========================================================================*/
+    FILE *infile = fopen(gLiveIframePath, "rb");
+    if (infile == NULL) {
+        fprintf(stderr, "!! Error: could not open file: %s \n", strerror(errno));
+        exit(EXIT_FAILURE);
     }
+    if (h264_dbgfile == NULL) { h264_dbgfile = stdout; }
+
 
     /* Get the size of the file. */
     int fsize;
@@ -528,173 +565,311 @@ static void *ThreadVideoFrameData(void *arg) {
         exit(0);
     }
     fsize = s.st_size;
-    nalu = malloc(fsize);
-
+    printf("fsize = %d\n", fsize);
+    // nalu = malloc(fsize);
+    nalu = malloc(102400);
 
     printf("%s start OK\n", __func__);
     printf("[Video] is ENABLED!!\n");
 
+    /*==========================================================================*/
+    // H.264 Slice_Splitting Testing
+    uint8_t *buf = (uint8_t *) malloc(BUFSIZE);
+    h264_stream_t *h = h264_new();
+
     while (gProgressRun) {
-        while (1) {
-            int len = read(f, head, DATA_TAIL - head + 1);
-            if (len <= 0) {
-                close(nalUnit);
-                // Adding
-                memset(data, 0, MAX_BUFFER_SIZE); //Init Matrix
-                DATA_TAIL = data + MAX_BUFFER_SIZE - 1;
-                head = data;
-//                break;
+        freadtime += 1;
+        sz = 0;
+        rsz = fread(buf + sz, 1, BUFSIZE - sz, infile);
+        printf("read time = %d\n", freadtime);
+        if (rsz == 0) {
+            if (ferror(infile)) {
+                fprintf(stderr, "!! Error: read failed: %s \n", strerror(errno));
+                break;
+            }
+            // Init Params Again
+            memset(buf, 0, BUFSIZE);
+            infile = fopen(argv[1], "rb"); // Read New File
+            sz = 0;
+            off = 0;
+            p = buf;
+            nal_start = 0;
+            nal_end = 0;
+            memset(pps_buf, 0, 32);
+            memset(pps_buf_size, 0, 32);
+            cnt = 0;
+            total_byte = 0;
+
+            // File Access
+            fclose(infile);
+            char wfile_name[50];
+            ericnt += 1;
+            sprintf(wfile_name, "/mnt/sdcard/mpi_test/PBmmap_.%d", ericnt);
+            infile = fopen(wfile_name, "rb");
+            if (infile == NULL) {
+                fprintf(stderr, "!! Error: could not open file: %s \n", strerror(errno));
+                exit(EXIT_FAILURE);
             }
 
-            tail = data;
-            head -= IPSTARTER264NAL - 1;
-            while (head < DATA_TAIL - (IPSTARTER264NAL - 2)) {
-                if (memcmp(head, PFrame, IPSTARTER264NAL) == 0) {
-                    key = 1;
-                    memset(&frame_info, 0, sizeof(frame_info));
-                    frame_info.codec_id = MEDIA_CODEC_VIDEO_H264;
-                    frame_info.flags = IPC_FRAME_FLAG_PBFRAME;
+            continue; // GoTo Top
 
-                } else if (memcmp(head, IFrame, IPSTARTER264NAL) == 0) {
-                    key = 1;
-                    memset(&frame_info, 0, sizeof(frame_info));
-                    frame_info.codec_id = MEDIA_CODEC_VIDEO_H264;
-                    frame_info.flags = IPC_FRAME_FLAG_IFRAME;
-
-                } else;
-
-                if (key == 1) {
-                    if (nalUnit > 0) {
-//                    write(nalUnit, tail, head - tail);
-                        memcpy(nalu + nalu_size, tail, head - tail);
-                        nalu_size += (head - tail);
-//                        write(nalUnit, ret, ret_size); // write buf in fd
-//                        printf("ret_size = %d\n", ret_size);
-                        memset(nalu, 0, nalu_size);
-                        nalu_size = 0;
-                        // TUTK Program starts here...
-                        frame_info.timestamp = GetTimeStampMs();
-                        send_frame_out = 0;
-                        take_sec = 0, take_us = 0, send_frame_us = 0;
-
-                        if (fps_count == 0)
-                            gettimeofday(&tv, NULL);
-
-                        for (i = 0; i < MAX_CLIENT_NUMBER; i++) {
-                            //get reader lock
-                            lock_ret = pthread_rwlock_rdlock(&gClientInfo[i].lock);
-                            if (lock_ret)
-                                printf("Acquire SID %d rdlock error, ret = %d\n", i, lock_ret);
-
-                            av_index = gClientInfo[i].av_index;
-                            enable_video = gClientInfo[i].enable_video;
-
-                            //release reader lock
-                            lock_ret = pthread_rwlock_unlock(&gClientInfo[i].lock);
-                            if (lock_ret)
-                                printf("Acquire SID %d rdlock error, ret = %d\n", i, lock_ret);
-
-                            if (av_index < 0 || enable_video == 0) {
-                                continue;
-                            }
-
-                            // Send Video Frame to av-idx and know how many time it takes
-                            frame_info.onlineNum = gOnlineNum;
-                            gettimeofday(&tv_start, NULL);
-                            ret = avSendFrameData(av_index, tail, strmsize, &frame_info, sizeof(frame_info));
-                            gettimeofday(&tv_end, NULL);
-
-                            take_sec = tv_end.tv_sec - tv_start.tv_sec, take_us = tv_end.tv_usec - tv_start.tv_usec;
-                            if (take_us < 0) {
-                                take_sec--;
-                                take_us += 1000000;
-                            }
-                            send_frame_us += take_us;
-                            // printf("send_frame_us = %ld us\n", send_frame_us);
-                            total_count++;
-                            if (ret ==
-                                AV_ER_EXCEED_MAX_SIZE) { // means data not write to queue, send too slow, I want to skip it
-                                printf("%s AV_ER_EXCEED_MAX_SIZE SID[%d] avIndex[%d]\n", __func__, i, av_index);
-                                usleep(5000);
-                                continue;
-                            }
-                            if (ret == AV_ER_SESSION_CLOSE_BY_REMOTE) {
-                                printf("%s AV_ER_SESSION_CLOSE_BY_REMOTE SID[%d] avIndex[%d]\n", __func__, i, av_index);
-                                UnRegEditClientFromVideo(i);
-                                continue;
-                            } else if (ret == AV_ER_REMOTE_TIMEOUT_DISCONNECT) {
-                                printf("%s AV_ER_REMOTE_TIMEOUT_DISCONNECT SID[%d] avIndex[%d]\n", __func__, i,
-                                       av_index);
-                                UnRegEditClientFromVideo(i);
-                                continue;
-                            } else if (ret == IOTC_ER_INVALID_SID) {
-                                printf("%s Session cant be used anymore SID[%d] avIndex[%d]\n", __func__, i, av_index);
-                                UnRegEditClientFromVideo(i);
-                                continue;
-                            } else if (ret < 0) {
-                                printf("%s SID[%d] avIndex[%d] error[%d]\n", __func__, i, av_index, ret);
-                                UnRegEditClientFromVideo(i);
-                            }
-
-                            send_frame_out = 1;
-                        }
-
-                        if (1 == send_frame_out && fps_count++ >= frame_rate) {
-                            round++;
-                            gettimeofday(&tv2, NULL);
-                            long sec = tv2.tv_sec - tv.tv_sec, usec = tv2.tv_usec - tv.tv_usec;
-                            if (usec < 0) {
-                                sec--;
-                                usec += 1000000;
-                            }
-                            usec += (sec * 1000000);
-
-                            long one_frame_use_time = usec / fps_count;
-                            float fps = (float) 1000000 / one_frame_use_time;
-                            if (fps > hF) hF = fps;
-                            if (lF == 0.0) lF = fps;
-                            else if (fps < lF) lF = fps;
-                            printf("Fps = %f R[%d]\n", fps, round);
-                            fps_count = 0;
-                            total_fps += fps;
-                        }
-
-                        // notice the frames sending time for more specific frame rate control
-                        /*if( sleep_us > send_frame_us ){
-                             usleep(sleep_us-send_frame_us);
-                        }*/
-                        close(nalUnit);
-                    }
-                    tail = head;
-                    printf("IP-Frame New NAL unit created %ld\n", nalIdx);
-                    sprintf(fileName, "%s.%04ld", argv[1], nalIdx);
-                    nalUnit = open(fileName, O_CREAT | O_WRONLY, 0666);
-                    nalIdx++;
-                }
-                key = 0;
-                head++;
-            }
-
-
-            if (data == tail) {
-//                write(nalUnit, tail, head - tail);
-                memcpy(nalu + nalu_size, tail, head - tail);
-                nalu_size += (head - tail);
-
-                memcpy(tmp, head, DATA_TAIL - head + 1);
-                memcpy(data, tmp, DATA_TAIL - head + 1);
-                head = data + (DATA_TAIL - head + 1);
-            } else {
-                memcpy(tmp, tail, DATA_TAIL - tail + 1);
-                memcpy(data, tmp, DATA_TAIL - tail + 1);
-                head = data + (DATA_TAIL - tail + 1);
-            }
+            //break;  // if (feof(infile))
         }
-//        write(nalUnit, data, (DATA_TAIL - data));
-        read(nalUnit, data, (DATA_TAIL - data));
-        close(nalUnit);
-        close(fd);
+
+        sz += rsz;
+
+        while (find_nal_unit(p, sz, &nal_start, &nal_end) > 0) {
+            fprintf(h264_dbgfile, "!! Found NAL at offset %lld (0x%04llX), size %lld (0x%04llX) \n",
+                    (long long int) (off + (p - buf) + nal_start),
+                    (long long int) (off + (p - buf) + nal_start),
+                    (long long int) (nal_end - nal_start),
+                    (long long int) (nal_end - nal_start));
+
+            fprintf(h264_dbgfile, "XX ");
+            debug_bytes(p, nal_end - nal_start >= 16 ? 16 : nal_end - nal_start);
+
+            p += nal_start;
+            read_debug_nal_unit(h, p, nal_end - nal_start);
+
+            //check nal type
+            switch (h->nal->nal_unit_type) {
+                case NAL_UNIT_TYPE_CODED_SLICE_IDR:
+                case NAL_UNIT_TYPE_CODED_SLICE_NON_IDR:
+                case NAL_UNIT_TYPE_CODED_SLICE_AUX:
+                    printf("reference pps: %d & sps: %d\n", h->sh->pic_parameter_set_id,
+                           h->pps_table[h->sh->pic_parameter_set_id]->seq_parameter_set_id);
+
+                    if (pps_buf[h->sh->pic_parameter_set_id] != NULL) {
+                        fwrite(pps_buf[h->sh->pic_parameter_set_id], 1, pps_buf_size[h->sh->pic_parameter_set_id],
+                               outfile_base);
+                        free(pps_buf[h->sh->pic_parameter_set_id]);
+                        pps_buf[h->sh->pic_parameter_set_id] = NULL;
+                    }
+
+                    //start saving the slices
+                    fwrite(p - nal_start, 1, nal_end, outfile_base);
+
+                    break;
+
+                case NAL_UNIT_TYPE_SPS:
+                    fwrite(p - nal_start, 1, nal_end, outfile_base);
+                    break;
+
+                case NAL_UNIT_TYPE_PPS:
+                    pps_buf[h->pps->pic_parameter_set_id] = malloc(nal_end);
+                    memcpy(pps_buf[h->pps->pic_parameter_set_id], p - nal_start, nal_end);
+                    pps_buf_size[h->pps->pic_parameter_set_id] = nal_end;
+
+                    break;
+
+                    //SVC support
+                case NAL_UNIT_TYPE_SUBSET_SPS:
+                    printf("sps_ext id: %d\n", h->sps_subset->sps->seq_parameter_set_id);
+                    memset(fname_buf, 0, 1024);
+                    sprintf(fname_buf, "%s.l_%d", argv[1], h->sps_subset->sps->seq_parameter_set_id);
+                    outfile_layers[h->sps_subset->sps->seq_parameter_set_id] = fopen(fname_buf, "wb");
+                    if (outfile_layers[h->sps_subset->sps->seq_parameter_set_id] == NULL) {
+                        fprintf(stderr, "!! Error: could not open file: %s \n", strerror(errno));
+                        exit(EXIT_FAILURE);
+                    }
+
+                    fwrite(p - nal_start, 1, nal_end, outfile_layers[h->sps_subset->sps->seq_parameter_set_id]);
+                    break;
+
+                    //SVC support
+                case NAL_UNIT_TYPE_CODED_SLICE_SVC_EXTENSION:
+                    printf("reference extension pps: %d & sps: %d\n", h->sh->pic_parameter_set_id,
+                           h->pps_table[h->sh->pic_parameter_set_id]->seq_parameter_set_id);
+
+                    if (pps_buf[h->sh->pic_parameter_set_id] != NULL) {
+                        fwrite(pps_buf[h->sh->pic_parameter_set_id], 1, pps_buf_size[h->sh->pic_parameter_set_id],
+                               outfile_layers[h->pps_table[h->sh->pic_parameter_set_id]->seq_parameter_set_id]);
+                        free(pps_buf[h->sh->pic_parameter_set_id]);
+                        pps_buf[h->sh->pic_parameter_set_id] = NULL;
+                    }
+
+                    //start saving the slices
+                    fwrite(p - nal_start, 1, nal_end,
+                           outfile_layers[h->pps_table[h->sh->pic_parameter_set_id]->seq_parameter_set_id]);
+                    break;
+
+                default:
+                    fwrite(p - nal_start, 1, nal_end, outfile_misc);
+                    break;
+            }
+
+            //save nal to corresponding file
+            if (h->nal->nal_unit_type == NAL_UNIT_TYPE_SPS) {
+                head = p - nal_start;
+                total_byte = 0;
+            }
+            total_byte += nal_end;
+
+            if (h->nal->nal_unit_type == NAL_UNIT_TYPE_CODED_SLICE_NON_IDR) {
+//                sprintf(str, "file.%d", cnt);
+//                fp = fopen(str, "wb");
+//                if (fp == NULL) {
+//                    printf("Error!");
+//                }
+//                printf("size = %d\n", nal_end);
+//                fwrite(p - nal_start, 1, nal_end, fp);
+//                cnt += 1;
+//                fclose(fp);
+
+                key = 1;
+                nalu = p - nal_start;
+                nalu_size = nal_end;
+                //TODO Starting with PB-Frame
+                memset(&frame_info, 0, sizeof(frame_info));
+                frame_info.codec_id = MEDIA_CODEC_VIDEO_H264;
+                frame_info.flags = IPC_FRAME_FLAG_PBFRAME;
+            }
+            else if (h->nal->nal_unit_type == NAL_UNIT_TYPE_CODED_SLICE_IDR) {
+//                sprintf(str, "file.%d", cnt);
+//                fp = fopen(str, "wb");
+//                if (fp == NULL) {
+//                    printf("Error!");
+//                }
+//                printf("size = %d\n", total_byte);
+//                fwrite(head, 1, total_byte, fp);
+//                cnt += 1;
+//                fclose(fp);
+
+                key = 1;
+                nalu = head;
+                nalu_size = total_byte;
+                //TODO Starting with IDR-Frame
+                memset(&frame_info, 0, sizeof(frame_info));
+                frame_info.codec_id = MEDIA_CODEC_VIDEO_H264;
+                frame_info.flags = IPC_FRAME_FLAG_IFRAME;
+            }
+            else;
+
+            if (key == 1) {
+                //TODO TUTK starting with here...
+                frame_info.timestamp = GetTimeStampMs();
+                send_frame_out = 0;
+                take_sec = 0, take_us = 0, send_frame_us = 0;
+
+                if (fps_count == 0)
+                    gettimeofday(&tv, NULL);
+
+                for (i = 0; i < MAX_CLIENT_NUMBER; i++) {
+                    //get reader lock
+                    lock_ret = pthread_rwlock_rdlock(&gClientInfo[i].lock);
+                    if (lock_ret)
+                        printf("Acquire SID %d rdlock error, ret = %d\n", i, lock_ret);
+
+                    av_index = gClientInfo[i].av_index;
+                    enable_video = gClientInfo[i].enable_video;
+
+                    //release reader lock
+                    lock_ret = pthread_rwlock_unlock(&gClientInfo[i].lock);
+                    if (lock_ret)
+                        printf("Acquire SID %d rdlock error, ret = %d\n", i, lock_ret);
+
+                    if (av_index < 0 || enable_video == 0) {
+                        continue;
+                    }
+
+                    // Send Video Frame to av-idx and know how many time it takes
+                    frame_info.onlineNum = gOnlineNum;
+                    gettimeofday(&tv_start, NULL);
+                    ret = avSendFrameData(av_index, nalu, nalu_size, &frame_info, sizeof(frame_info));
+                    gettimeofday(&tv_end, NULL);
+
+                    take_sec = tv_end.tv_sec - tv_start.tv_sec, take_us = tv_end.tv_usec - tv_start.tv_usec;
+                    if (take_us < 0) {
+                        take_sec--;
+                        take_us += 1000000;
+                    }
+                    send_frame_us += take_us;
+                    // printf("send_frame_us = %ld us\n", send_frame_us);
+                    total_count++;
+                    if (ret ==
+                        AV_ER_EXCEED_MAX_SIZE) { // means data not write to queue, send too slow, I want to skip it
+                        printf("%s AV_ER_EXCEED_MAX_SIZE SID[%d] avIndex[%d]\n", __func__, i, av_index);
+                        usleep(5000);
+                        continue;
+                    }
+                    if (ret == AV_ER_SESSION_CLOSE_BY_REMOTE) {
+                        printf("%s AV_ER_SESSION_CLOSE_BY_REMOTE SID[%d] avIndex[%d]\n", __func__, i, av_index);
+                        UnRegEditClientFromVideo(i);
+                        continue;
+                    } else if (ret == AV_ER_REMOTE_TIMEOUT_DISCONNECT) {
+                        printf("%s AV_ER_REMOTE_TIMEOUT_DISCONNECT SID[%d] avIndex[%d]\n", __func__, i,
+                               av_index);
+                        UnRegEditClientFromVideo(i);
+                        continue;
+                    } else if (ret == IOTC_ER_INVALID_SID) {
+                        printf("%s Session cant be used anymore SID[%d] avIndex[%d]\n", __func__, i, av_index);
+                        UnRegEditClientFromVideo(i);
+                        continue;
+                    } else if (ret < 0) {
+                        printf("%s SID[%d] avIndex[%d] error[%d]\n", __func__, i, av_index, ret);
+                        UnRegEditClientFromVideo(i);
+                    }
+
+                    send_frame_out = 1;
+                }
+
+                if (1 == send_frame_out && fps_count++ >= frame_rate) {
+                    round++;
+                    gettimeofday(&tv2, NULL);
+                    long sec = tv2.tv_sec - tv.tv_sec, usec = tv2.tv_usec - tv.tv_usec;
+                    if (usec < 0) {
+                        sec--;
+                        usec += 1000000;
+                    }
+                    usec += (sec * 1000000);
+
+                    long one_frame_use_time = usec / fps_count;
+                    float fps = (float) 1000000 / one_frame_use_time;
+                    if (fps > hF) hF = fps;
+                    if (lF == 0.0) lF = fps;
+                    else if (fps < lF) lF = fps;
+                    printf("Fps = %f R[%d]\n", fps, round);
+                    fps_count = 0;
+                    total_fps += fps;
+                }
+
+                // notice the frames sending time for more specific frame rate control
+                if (sleep_us > send_frame_us) {
+                    usleep(sleep_us - send_frame_us);
+                }
+
+                key = 0;
+            }
+
+            //skip to next NAL
+            p += (nal_end - nal_start);
+            sz -= nal_end;
+
+        }
+
+        // if no NALs found in buffer, discard it
+        if (p == buf) {
+            fprintf(stderr,
+                    "!! Did not find any NALs between offset %lld (0x%04llX), size %lld (0x%04llX), discarding \n",
+                    (long long int) off,
+                    (long long int) off,
+                    (long long int) off + sz,
+                    (long long int) off + sz);
+
+            p = buf + sz;
+            sz = 0;
+        }
+
+        memmove(buf, p, sz);
+        off += p - buf;
+        p = buf;
     }
+    h264_free(h);
+    free(buf);
+
+    fclose(h264_dbgfile);
+    fclose(infile);
+
     printf("[%s] exit High/Low [%f/%f] AVG[%f] totalCnt[%d]\n", __func__, hF, lF, (float) total_fps / round,
            total_count);
     pthread_exit(0);
@@ -1240,16 +1415,17 @@ static void *ThreadNebulaLogin(void *arg) {
     NebulaDeviceCtx *device_ctx = (NebulaDeviceCtx *) arg;
     int ret = 0;
     char admin_psk[MAX_NEBULA_PSK_LENGTH + 1] = {0};
-    while (gProgressRun) {
-        int ret = Nebula_Device_Login(device_ctx, DeviceLoginStateHandle);
-        printf("Nebula_Device_Login ret[%d]\n", ret);
-        if (ret == NEBULA_ER_NoERROR) {
-            printf("Nebula_Device_Login success...!!\n");
-            break;
+    if (gBindType != LOCAL_BIND) {
+        while (gProgressRun) {
+            int ret = Nebula_Device_Login(device_ctx, DeviceLoginStateHandle);
+            printf("Nebula_Device_Login ret[%d]\n", ret);
+            if (ret == NEBULA_ER_NoERROR) {
+                printf("Nebula_Device_Login success...!!\n");
+                break;
+            }
+            sleep(1);
         }
-        sleep(1);
     }
-
     ret = GetPskFromFile("admin", gUserIdentitiesFilePath, admin_psk, MAX_NEBULA_PSK_LENGTH);
     if (ret != 200) {
         AppendPskToFile("admin", gUserIdentitiesFilePath, admin_psk, MAX_NEBULA_PSK_LENGTH);
